@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hili Impex Accounts</title>
+<title>Lc Management</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f2f5fa;color:#17243a;font-family:Arial,sans-serif}
@@ -60,8 +60,7 @@ th{background:#e8eff8}
 </head>
 <body>
 <header>
- <h2>Hili Impex — Accounts Manager</h2>
- <div>Cash Book | Bank Statement | Stock | Expenses</div>
+ <h2>Lc Management-Accounts Manager</h2>
 </header>
 <main>
 <nav class="noPrint">
@@ -203,6 +202,12 @@ th{background:#e8eff8}
 </section>
 </main>
 <script>
+ // Compatibility fix: connect HTML IDs to JavaScript
+document.querySelectorAll('[id]').forEach(function(el) {
+  if (!(el.id in window)) {
+    window[el.id] = el;
+  }
+});
 const KEY='hili_impex_demo_v2';
 let db={accounts:[],cash:[],bank:[],stock:[],expenses:[]};
 const today=()=>new Date().toISOString().slice(0,10);
