@@ -1,74 +1,89 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LC Import & Wholesale Management</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LC Business Manager</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172033}
-header{background:#12305b;color:white;padding:18px}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f6fb;color:#172033}
+header{background:#153568;color:white;padding:18px}
+header h2{margin:0 0 6px}
 main{max-width:1100px;margin:auto;padding:12px}
-.card{background:white;padding:15px;margin:12px 0;border-radius:10px;border:1px solid #ddd}
-input,select{width:100%;padding:11px;margin:5px 0 12px;border:1px solid #bbb;border-radius:6px}
-button{padding:10px 13px;background:#175cd3;color:white;border:0;border-radius:6px;margin:3px;cursor:pointer}
-nav{display:flex;gap:4px;overflow:auto;background:white;padding:8px;position:sticky;top:0}
+.card{background:white;border:1px solid #e1e7ef;border-radius:12px;padding:15px;margin-bottom:12px}
+input,select{width:100%;padding:12px;border:1px solid #ccd5e2;border-radius:7px;margin:5px 0 12px;background:white}
+button{border:0;border-radius:7px;padding:11px 14px;background:#175cd3;color:white;cursor:pointer;margin:3px}
+button.secondary{background:#e7edf7;color:#17345f}
+button.danger{background:#b42318}
+nav{display:flex;gap:5px;overflow-x:auto;padding:8px 0;position:sticky;top:0;background:#f3f6fb;z-index:2}
 nav button{white-space:nowrap}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .page{display:none}.page.active{display:block}
-table{border-collapse:collapse;width:100%;min-width:600px}
-th,td{border-bottom:1px solid #ddd;padding:9px;text-align:left;font-size:13px}
-th{background:#eaf0f8}
-.tablewrap{overflow:auto}
-.msg{padding:10px;background:#fff4d6;border-radius:6px;overflow-wrap:anywhere}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.metric{background:#edf4ff;border-radius:9px;padding:15px}
+.metric strong{display:block;font-size:20px;margin-top:8px;overflow-wrap:anywhere}
+label{font-size:14px;font-weight:bold}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid #e1e7ef;font-size:13px}
+th{background:#edf2f8}
+.msg{padding:12px;border-radius:8px;background:#fff4d6;overflow-wrap:anywhere;margin:10px 0}
 .hidden{display:none!important}
-@media print{header,nav,form,button,.noprint{display:none!important}.page{display:none!important}.page.active{display:block!important}}
-<nav class="noprint">
-<div class="card noprint">
-  <button type="button" onclick="window.print()">
-    🖨️ Print / Save PDF
-  </button>
-</div>
-<button data-page="dashboard">Dashboard</button>
+h3{margin-top:0}
+.actions{display:flex;flex-wrap:wrap;gap:5px}
+@media print{
+ body{background:white}
+ header,.noprint,nav,form,.no-print{display:none!important}
+ main{padding:0;margin:0;max-width:none}
+ .page{display:none!important}
+ .page.active{display:block!important}
+ .card{border:0;padding:5px;margin:0}
+ .tablewrap{overflow:visible}
+ table{min-width:0;width:100%}
+ th,td{font-size:10px;padding:5px}
+}
 </style>
 </head>
 <body>
 <header>
-<h2>LC Import & Wholesale Management</h2>
+<h2>LC Business Manager</h2>
+<small>Import • Wholesale • Accounts • Stock</small>
 </header>
 
 <main>
 <section id="login" class="card">
 <h3>Login / Signup</h3>
-<p>নতুন account তৈরি করতে Signup ব্যবহার করুন।</p>
-<form id="authForm">
-<label>আপনার নাম</label>
-<input id="name" placeholder="আপনার নাম" required>
+<form id="loginForm">
+<label>আপনার নাম (Signup-এর জন্য)</label>
+<input id="displayName" placeholder="আপনার নাম">
 <label>Email</label>
 <input id="email" type="email" required>
 <label>Password</label>
 <input id="password" type="password" minlength="8" required>
-<label>Account Type</label>
-<select id="type">
+<label>Account Type (Signup-এর জন্য)</label>
+<select id="accountType">
 <option value="personal">Personal Account</option>
 <option value="company">Company Account</option>
 </select>
 <div id="companyBox" class="hidden">
 <label>Company Name</label>
-<input id="company" placeholder="কোম্পানির নাম">
+<input id="companyName" placeholder="কোম্পানির নাম">
 </div>
+<div class="actions">
 <button type="submit">Login</button>
-<button type="button" id="signup">Signup</button>
-<button type="button" id="reset">Reset Password</button>
+<button type="button" id="signup">Create Account</button>
+<button type="button" class="secondary" id="resetPassword">Reset Password</button>
+</div>
 </form>
-<div id="loginMsg" class="msg">Supabase configuration বসান।</div>
+<div id="loginMsg" class="msg">Supabase configuration পরীক্ষা করা হচ্ছে…</div>
 </section>
 
-<section id="application" class="hidden">
-<div class="card">
-<strong id="userLabel"></strong>
-<button id="logout">Logout</button>
+<section id="app" class="hidden">
+<div class="card noprint">
+<div id="accountLabel"></div>
+<button id="logout" class="secondary">Logout</button>
+<button id="printPage">🖨 Print / Save PDF</button>
 <div id="status" class="msg">Ready</div>
 </div>
 
@@ -76,129 +91,136 @@ th{background:#eaf0f8}
 <button data-page="dashboard">Dashboard</button>
 <button data-page="cash">Cash Book</button>
 <button data-page="accounts">Bank Accounts</button>
-<button data-page="bank">Bank Transactions</button>
+<button data-page="bank">Bank Statement</button>
 <button data-page="expenses">Expenses</button>
 <button data-page="stock">Stock</button>
-<button data-page="settings">Settings</button>
+<button data-page="lc">LC Records</button>
+<button data-page="reports">Reports</button>
 </nav>
 
 <section id="dashboard" class="page active">
-<div class="card"><h3>Dashboard</h3>
+<div class="card">
+<h3>Dashboard</h3>
 <div class="grid">
-<div class="card">Cash Balance<h3 id="cashTotal">৳0.00</h3></div>
-<div class="card">Bank Balance<h3 id="bankTotal">৳0.00</h3></div>
-<div class="card">Stock Records<h3 id="stockTotal">0</h3></div>
-<div class="card">Expenses<h3 id="expenseTotal">৳0.00</h3></div>
+<div class="metric">Cash Balance<strong id="cashTotal">৳0</strong></div>
+<div class="metric">Bank Balance<strong id="bankTotal">৳0</strong></div>
+<div class="metric">Total Expenses<strong id="expenseTotal">৳0</strong></div>
+<div class="metric">Stock Items<strong id="stockTotal">0</strong></div>
+<div class="metric">LC Records<strong id="lcTotal">0</strong></div>
 </div>
-<button onclick="window.print()">Print / Save PDF</button>
 </div>
 </section>
 
 <section id="cash" class="page">
-<div class="card"><h3>Cash Book</h3>
+<div class="card">
+<h3>Cash Book</h3>
 <form id="cashForm">
 <label>Date</label><input name="date" type="date" required>
-<label>Type</label><select name="type"><option value="in">জমা</option><option value="out">খরচ</option></select>
+<label>Transaction</label>
+<select name="type"><option value="in">জমা</option><option value="out">খরচ</option></select>
 <label>Description</label><input name="name" required>
 <label>Reference</label><input name="ref">
-<label>Amount</label><input name="amount" type="number" min=".01" step=".01" required>
+<label>Amount</label><input name="amount" type="number" min="0.01" step="0.01" required>
 <label>Note</label><input name="note">
 <button>Save Cash Entry</button>
 </form>
-<div class="tablewrap"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Action</th></tr></thead><tbody id="cashRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th class="noprint">Action</th></tr></thead><tbody id="cashRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="accounts" class="page">
-<div class="card"><h3>Bank Accounts</h3>
+<div class="card">
+<h3>Bank Accounts</h3>
 <form id="accountForm">
 <label>Bank Name</label><input name="bank" required>
 <label>Account Holder</label><input name="holder" required>
 <label>Account Number</label><input name="account_number">
 <label>Branch</label><input name="branch">
-<label>Routing</label><input name="routing">
-<label>Opening Balance</label><input name="opening_balance" type="number" step=".01" value="0" required>
+<label>Routing Number</label><input name="routing">
+<label>Opening Balance</label><input name="opening_balance" type="number" step="0.01" value="0" required>
 <label>Opening Date</label><input name="opening_date" type="date" required>
 <button>Save Bank Account</button>
 </form>
-<div class="tablewrap"><table><thead><tr><th>Bank</th><th>Holder</th><th>Account</th><th>Balance</th><th>Action</th></tr></thead><tbody id="accountRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Bank</th><th>Holder</th><th>Account No.</th><th>Opening Balance</th><th class="noprint">Action</th></tr></thead><tbody id="accountRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="bank" class="page">
-<div class="card"><h3>Bank Transactions</h3>
+<div class="card">
+<h3>Bank Statement</h3>
 <form id="bankForm">
 <label>Bank Account</label><select name="account_id" id="bankSelect" required></select>
 <label>Date</label><input name="date" type="date" required>
-<label>Type</label><select name="type"><option value="in">জমা</option><option value="out">উত্তোলন/পেমেন্ট</option></select>
+<label>Transaction</label><select name="type"><option value="in">জমা</option><option value="out">উত্তোলন / পেমেন্ট</option></select>
 <label>Description</label><input name="name" required>
 <label>Reference</label><input name="ref">
-<label>Amount</label><input name="amount" type="number" min=".01" step=".01" required>
+<label>Amount</label><input name="amount" type="number" min="0.01" step="0.01" required>
 <label>Note</label><input name="note">
 <button>Save Bank Transaction</button>
 </form>
-<div class="tablewrap"><table><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Action</th></tr></thead><tbody id="bankRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Bank Account</th><th>Description</th><th>Type</th><th>Amount</th><th class="noprint">Action</th></tr></thead><tbody id="bankRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="expenses" class="page">
-<div class="card"><h3>Expenses</h3>
+<div class="card">
+<h3>Expenses</h3>
 <form id="expenseForm">
 <label>Date</label><input name="date" type="date" required>
 <label>Expense Name</label><input name="name" required>
 <label>Reference</label><input name="ref">
-<label>Amount</label><input name="amount" type="number" min=".01" step=".01" required>
+<label>Amount</label><input name="amount" type="number" min="0.01" step="0.01" required>
 <label>Payment Method</label><select name="method"><option>Cash</option><option>Bank</option><option>Other</option></select>
 <label>Note</label><input name="note">
 <button>Save Expense</button>
 </form>
-<div class="tablewrap"><table><thead><tr><th>Date</th><th>Name</th><th>Method</th><th>Amount</th><th>Action</th></tr></thead><tbody id="expenseRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Name</th><th>Method</th><th>Amount</th><th class="noprint">Action</th></tr></thead><tbody id="expenseRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="stock" class="page">
-<div class="card"><h3>Warehouse Stock</h3>
+<div class="card">
+<h3>Stock / Godown</h3>
 <form id="stockForm">
 <label>Date</label><input name="date" type="date" required>
-<label>Product</label><input name="name" required>
-<label>Code</label><input name="code">
-<label>Unit / Type</label><input name="type" required>
-<label>Quantity</label><input name="qty" type="number" step=".01" required>
-<label>Unit Price</label><input name="price" type="number" min="0" step=".01" required>
+<label>Product Name</label><input name="name" required>
+<label>Product Code</label><input name="code">
+<label>Unit</label><input name="type" placeholder="যেমন: pcs, kg, carton" required>
+<label>Quantity</label><input name="qty" type="number" step="0.01" required>
+<label>Unit Price</label><input name="price" type="number" min="0" step="0.01" required>
 <label>Note</label><input name="note">
 <button>Save Stock</button>
 </form>
-<div class="tablewrap"><table><thead><tr><th>Date</th><th>Product</th><th>Code</th><th>Unit</th><th>Quantity</th><th>Price</th><th>Action</th></tr></thead><tbody id="stockRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Product</th><th>Code</th><th>Unit</th><th>Quantity</th><th>Unit Price</th><th class="noprint">Action</th></tr></thead><tbody id="stockRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="lc" class="page">
-<div class="card"><h3>LC Records</h3>
+<div class="card">
+<h3>LC Records</h3>
 <form id="lcForm">
 <label>LC Number</label><input name="lc_no" required>
 <label>Supplier</label><input name="supplier" required>
 <label>Bank Name</label><input name="bank_name">
 <label>Date</label><input name="date" type="date" required>
-<label>Amount</label><input name="amount" type="number" min="0" step=".01" required>
+<label>Amount</label><input name="amount" type="number" min="0" step="0.01" required>
 <label>Status</label><select name="status"><option>Pending</option><option>Opened</option><option>Shipped</option><option>Completed</option><option>Cancelled</option></select>
 <button>Save LC Record</button>
 </form>
-<div class="tablewrap"><table><thead><tr><th>LC No.</th><th>Supplier</th><th>Bank</th><th>Date</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody id="lcRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>LC No.</th><th>Supplier</th><th>Bank</th><th>Date</th><th>Amount</th><th>Status</th><th class="noprint">Action</th></tr></thead><tbody id="lcRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="reports" class="page">
-<div class="card"><h3>Reports</h3><div id="report"></div>
-<button onclick="downloadCSV()">Export CSV</button>
-<button onclick="downloadJSON()">Backup JSON</button>
-<button onclick="window.print()">Print / Save PDF</button>
+<div class="card">
+<h3>Reports</h3>
+<div id="report"></div>
+<div class="actions noprint">
+<button id="csv">Download CSV</button>
+<button id="json">Backup JSON</button>
+<button id="restore" class="secondary">Restore JSON Backup</button>
+<input id="restoreFile" type="file" accept=".json,application/json" class="hidden">
 </div>
-</section>
-
-<section id="settings" class="page">
-<div class="card"><h3>Settings</h3><div id="settingsInfo"></div>
-<p>এই অ্যাপের ডেটা Supabase Database-এ সংরক্ষিত হয়।</p>
-<button onclick="loadAll()">Reload Data</button>
 </div>
 </section>
 </section>
@@ -208,51 +230,253 @@ th{background:#eaf0f8}
 const SUPABASE_URL='https://mhxnecgkwqxjalgacxkt.supabase.co';
 const SUPABASE_KEY='sb_publishable_0pfcYZYvQm01CYwF2TlzLw_c2m49p_f';
 const $=id=>document.getElementById(id);
-let db,user,profile,workspaceId,personal=true;
-const tables={cash:'cash_transactions',accounts:'bank_accounts',bank:'bank_transactions',expenses:'expenses',stock:'stock_items',lc:'lc_records'};
-const cache={cash:[],accounts:[],bank:[],expenses:[],stock:[],lc:[]};
+let db,user,profile,workspaceId;
+let personal=true;
+const tableNames={
+ cash:'cash_transactions',
+ accounts:'bank_accounts',
+ bank:'bank_transactions',
+ expenses:'expenses',
+ stock:'stock_items',
+ lc:'lc_records'
+};
+const rows={cash:[],accounts:[],bank:[],expenses:[],stock:[],lc:[]};
+
 const money=n=>'৳'+Number(n||0).toLocaleString('en-BD',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function message(id,text){$(id).textContent=text}
-function show(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id))}
-function scoped(q){return personal?q.eq('owner_id',user.id).is('workspace_id',null):q.eq('workspace_id',workspaceId)}
-async function loadRows(k){const {data,error}=await scoped(db.from(tables[k]).select('*').order('created_at',{ascending:false}));if(error)throw error;cache[k]=data||[]}
-async function loadAll(){for(const k of Object.keys(tables))await loadRows(k);render()}
-function validAccount(){return profile&&profile.active===true&&profile.approved===true&&profile.role!=='pending'&&(personal||workspaceId)}
-async function insert(k,row){if(!validAccount())throw Error('Account inactive বা অসম্পূর্ণ');const {error}=await db.from(tables[k]).insert({...row,owner_id:user.id,workspace_id:personal?null:workspaceId});if(error)throw error;await loadAll();message('status','তথ্য সংরক্ষণ হয়েছে।')}
-async function del(k,id){if(!confirm('এই তথ্য মুছবেন?'))return;try{const {error}=await scoped(db.from(tables[k]).delete().eq('id',id));if(error)throw error;await loadAll()}catch(e){message('status','Delete error: '+e.message)}}
-window.del=del;
-function button(k,id){return `<button onclick="del('${k}','${esc(id)}')">Delete</button>`}
-function fill(id,rows,fn){$(id).innerHTML=rows.length?rows.map(fn).join(''):'<tr><td colspan="8">কোনো তথ্য নেই</td></tr>'}
-function render(){
-fill('cashRows',cache.cash,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.type)}</td><td>${esc(r.name)}</td><td>${money(r.amount)}</td><td>${button('cash',r.id)}</td></tr>`);
-fill('accountRows',cache.accounts,r=>`<tr><td>${esc(r.bank)}</td><td>${esc(r.holder)}</td><td>${esc(r.account_number)}</td><td>${money(r.opening_balance)}</td><td>${button('accounts',r.id)}</td></tr>`);
-$('bankSelect').innerHTML=cache.accounts.map(a=>`<option value="${esc(a.id)}">${esc(a.bank)} - ${esc(a.holder)}</option>`).join('');
-fill('bankRows',cache.bank,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.type)}</td><td>${money(r.amount)}</td><td>${button('bank',r.id)}</td></tr>`);
-fill('expenseRows',cache.expenses,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.method)}</td><td>${money(r.amount)}</td><td>${button('expenses',r.id)}</td></tr>`);
-fill('stockRows',cache.stock,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.code)}</td><td>${esc(r.type)}</td><td>${esc(r.qty)}</td><td>${money(r.price)}</td><td>${button('stock',r.id)}</td></tr>`);
-fill('lcRows',cache.lc,r=>`<tr><td>${esc(r.lc_no)}</td><td>${esc(r.supplier)}</td><td>${esc(r.bank_name)}</td><td>${esc(r.date)}</td><td>${money(r.amount)}</td><td>${esc(r.status)}</td><td>${button('lc',r.id)}</td></tr>`);
-const cash=cache.cash.reduce((s,r)=>s+(r.type==='in'?1:-1)*Number(r.amount||0),0);
-const bank=cache.accounts.reduce((s,r)=>s+Number(r.opening_balance||0),0)+cache.bank.reduce((s,r)=>s+(r.type==='in'?1:-1)*Number(r.amount||0),0);
-const exp=cache.expenses.reduce((s,r)=>s+Number(r.amount||0),0);
-$('cashTotal').textContent=money(cash);$('bankTotal').textContent=money(bank);$('stockTotal').textContent=cache.stock.length;$('expenseTotal').textContent=money(exp);
-$('report').innerHTML=`Cash Balance: ${money(cash)}<br>Bank Balance: ${money(bank)}<br>Expenses: ${money(exp)}<br>LC Total: ${money(cache.lc.reduce((s,r)=>s+Number(r.amount||0),0))}<br>Stock Records: ${cache.stock.length}`;
+const msg=s=>$('status').textContent=s;
+const today=()=>new Date().toLocaleDateString('en-CA');
+
+function showPage(id){
+ document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));
+ window.scrollTo({top:0,behavior:'smooth'});
 }
-function formObject(form,numbers=[]){const o={};for(const [k,v] of new FormData(form))o[k]=numbers.includes(k)?Number(v||0):(v===''?null:v);return o}
-function bind(form,k,numbers=[]){$(form).onsubmit=async e=>{e.preventDefault();try{await insert(k,formObject(e.currentTarget,numbers));e.currentTarget.reset()}catch(x){message('status','Save error: '+x.message)}}}
-function downloadFile(name,data,type){const a=document.createElement('a');const u=URL.createObjectURL(new Blob([data],{type}));a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
-function downloadCSV(){let lines=[];for(const [k,rows] of Object.entries(cache)){lines.push('SECTION,'+k);if(rows.length){const keys=Object.keys(rows[0]);lines.push(keys.join(','));rows.forEach(r=>lines.push(keys.map(x=>'"'+String(r[x]??'').replace(/"/g,'""')+'"').join(',')))}}downloadFile('lc-report.csv','\ufeff'+lines.join('\r\n'),'text/csv;charset=utf-8')}
-function downloadJSON(){downloadFile('lc-backup.json',JSON.stringify({exported_at:new Date().toISOString(),data:cache},null,2),'application/json')}
-$('type').onchange=()=>$('companyBox').classList.toggle('hidden',$('type').value!=='company');
-$('authForm').onsubmit=async e=>{e.preventDefault();try{const {data,error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;user=data.user;await afterLogin()}catch(x){message('loginMsg','Login error: '+x.message)}};
-$('signup').onclick=async()=>{if(!db)return message('loginMsg','Supabase configuration বসান');if(!$('authForm').reportValidity())return;const t=$('type').value,c=$('company').value.trim();if(t==='company'&&!c)return message('loginMsg','Company Name দিন');try{const {error}=await db.auth.signUp({email:$('email').value.trim(),password:$('password').value,options:{data:{display_name:$('name').value.trim(),account_type:t,company_name:c}}});if(error)throw error;message('loginMsg','Signup সফল। Email confirmation চালু থাকলে email verify করে Login করুন।')}catch(x){message('loginMsg','Signup error: '+x.message)}};
-$('reset').onclick=async()=>{const e=$('email').value.trim();if(!e)return message('loginMsg','Email দিন');try{const {error}=await db.auth.resetPasswordForEmail(e,{redirectTo:location.href});if(error)throw error;message('loginMsg','Password reset email পাঠানো হয়েছে')}catch(x){message('loginMsg',x.message)}};
-async function afterLogin(){const {data:p,error}=await db.from('profiles').select('*').eq('id',user.id).maybeSingle();if(error)throw error;if(!p)throw Error('Profile পাওয়া যায়নি। SQL trigger পরীক্ষা করুন।');profile=p;personal=p.account_type==='personal';workspaceId=p.workspace_id;if(!p.active||!p.approved||p.role==='pending')throw Error('Account active নয় অথবা profile অনুমোদিত নয়');if(p.account_type==='company'&&!workspaceId)throw Error('Company workspace পাওয়া যায়নি');$('login').classList.add('hidden');$('application').classList.remove('hidden');$('userLabel').textContent=(p.display_name||p.email)+' ('+p.account_type+')';$('settingsInfo').textContent='Email: '+p.email+' | Type: '+p.account_type+' | Workspace: '+(workspaceId||'Personal');show('dashboard');await loadAll()}
-$('logout').onclick=async()=>{await db.auth.signOut();location.reload()};
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.page));
-bind('cashForm','cash',['amount']);bind('accountForm','accounts',['opening_balance']);bind('bankForm','bank',['amount']);bind('expenseForm','expenses',['amount']);bind('stockForm','stock',['qty','price']);bind('lcForm','lc',['amount']);
-async function start(){if(SUPABASE_URL.startsWith('PASTE_')||SUPABASE_KEY.startsWith('PASTE_'))return message('loginMsg','নিচের কোডে Supabase URL এবং public key বসান');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const {data,error}=await db.auth.getSession();if(error)throw error;if(data.session){user=data.session.user;await afterLogin()}else message('loginMsg','Login করুন অথবা Signup করুন');db.auth.onAuthStateChange((_e,s)=>setTimeout(async()=>{if(!s){$('application').classList.add('hidden');$('login').classList.remove('hidden');return}user=s.user;try{await afterLogin()}catch(x){message('loginMsg',x.message)}},0))}
-start().catch(e=>message('loginMsg','Connection error: '+e.message));
+document.querySelectorAll('nav [data-page]').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+$('printPage').onclick=()=>window.print();
+
+function personalQuery(q){
+ return personal?q.eq('owner_id',user.id).is('workspace_id',null):q.eq('workspace_id',workspaceId);
+}
+function canUse(){
+ return !!profile && profile.active===true && profile.approved===true &&
+ profile.role!=='pending' && (personal || !!workspaceId);
+}
+async function loadTable(k){
+ let q=personalQuery(db.from(tableNames[k]).select('*'));
+ if(k==='bank')q=q.order('date',{ascending:false});
+ else if(k==='cash'||k==='expenses'||k==='stock'||k==='lc')q=q.order('date',{ascending:false});
+ else q=q.order('created_at',{ascending:false});
+ const {data,error}=await q;
+ if(error)throw error;
+ rows[k]=data||[];
+}
+async function refresh(){
+ if(!canUse())throw Error('এই account-এ data access অনুমোদিত নয়।');
+ for(const k of Object.keys(tableNames))await loadTable(k);
+ render();
+ msg('তথ্য আপডেট হয়েছে।');
+}
+async function saveRow(k,values){
+ if(!canUse())throw Error('Account inactive বা profile অসম্পূর্ণ।');
+ const payload={...values,owner_id:user.id,workspace_id:personal?null:workspaceId};
+ const {error}=await db.from(tableNames[k]).insert(payload);
+ if(error)throw error;
+ await refresh();
+ msg('সফলভাবে সংরক্ষণ হয়েছে।');
+}
+async function deleteRow(k,id){
+ if(!confirm('এই তথ্যটি মুছে ফেলবেন?'))return;
+ try{
+  const q=personalQuery(db.from(tableNames[k]).delete().eq('id',id));
+  const {error}=await q;
+  if(error)throw error;
+  await refresh();
+ }catch(e){msg('Delete error: '+e.message);}
+}
+window.deleteRow=deleteRow;
+
+function action(k,r){
+ return `<button class="danger noprint" onclick="deleteRow('${k}','${esc(r.id)}')">Delete</button>`;
+}
+function fill(id,data,fn){
+ $(id).innerHTML=data.length?data.map(fn).join(''):'<tr><td colspan="8">কোনো তথ্য নেই</td></tr>';
+}
+function render(){
+ fill('cashRows',rows.cash,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.name)}</td><td>${r.type==='in'?'জমা':'খরচ'}</td><td>${money(r.amount)}</td><td>${action('cash',r)}</td></tr>`);
+ fill('accountRows',rows.accounts,r=>`<tr><td>${esc(r.bank)}</td><td>${esc(r.holder)}</td><td>${esc(r.account_number)}</td><td>${money(r.opening_balance)}</td><td>${action('accounts',r)}</td></tr>`);
+ $('bankSelect').innerHTML=rows.accounts.map(a=>`<option value="${esc(a.id)}">${esc(a.bank)} — ${esc(a.holder)} (${esc(a.account_number)})</option>`).join('');
+ fill('bankRows',rows.bank,r=>{
+  const a=rows.accounts.find(x=>x.id===r.account_id);
+  return `<tr><td>${esc(r.date)}</td><td>${esc(a?a.bank:'Bank')}</td><td>${esc(r.name)}</td><td>${r.type==='in'?'জমা':'উত্তোলন'}</td><td>${money(r.amount)}</td><td>${action('bank',r)}</td></tr>`;
+ });
+ fill('expenseRows',rows.expenses,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.method)}</td><td>${money(r.amount)}</td><td>${action('expenses',r)}</td></tr>`);
+ fill('stockRows',rows.stock,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.code)}</td><td>${esc(r.type)}</td><td>${esc(r.qty)}</td><td>${money(r.price)}</td><td>${action('stock',r)}</td></tr>`);
+ fill('lcRows',rows.lc,r=>`<tr><td>${esc(r.lc_no)}</td><td>${esc(r.supplier)}</td><td>${esc(r.bank_name)}</td><td>${esc(r.date)}</td><td>${money(r.amount)}</td><td>${esc(r.status)}</td><td>${action('lc',r)}</td></tr>`);
+
+ const cash=rows.cash.reduce((s,r)=>s+(r.type==='in'?1:-1)*Number(r.amount||0),0);
+ const bankOpening=rows.accounts.reduce((s,r)=>s+Number(r.opening_balance||0),0);
+ const bankMoves=rows.bank.reduce((s,r)=>s+(r.type==='in'?1:-1)*Number(r.amount||0),0);
+ const expense=rows.expenses.reduce((s,r)=>s+Number(r.amount||0),0);
+ $('cashTotal').textContent=money(cash);
+ $('bankTotal').textContent=money(bankOpening+bankMoves);
+ $('expenseTotal').textContent=money(expense);
+ $('stockTotal').textContent=rows.stock.length;
+ $('lcTotal').textContent=rows.lc.length;
+ $('report').innerHTML=
+ `Cash Balance: ${money(cash)}<br>Bank Balance: ${money(bankOpening+bankMoves)}<br>`+
+ `Expenses: ${money(expense)}<br>Stock Records: ${rows.stock.length}<br>`+
+ `LC Total: ${money(rows.lc.reduce((s,r)=>s+Number(r.amount||0),0))}`;
+}
+function formData(form,numbers=[]){
+ const obj={};
+ for(const [k,v] of new FormData(form)){
+  obj[k]=numbers.includes(k)?Number(v||0):(v===''?null:v);
+ }
+ return obj;
+}
+function bindForm(id,k,numbers=[]){
+ $(id).addEventListener('submit',async e=>{
+  e.preventDefault();
+  const form=e.currentTarget;
+  const submit=form.querySelector('button[type="submit"],button:not([type])');
+  if(submit){submit.disabled=true;submit.textContent='Saving…';}
+  try{
+   const values=formData(form,numbers);
+   if(k==='bank'){
+    const a=rows.accounts.find(x=>x.id===values.account_id);
+    if(!a)throw Error('আগে Bank Account যোগ করুন।');
+    if(a.owner_id!==user.id)throw Error('Bank Account access যাচাই করা যায়নি।');
+   }
+   await saveRow(k,values);
+   form.reset();
+   form.querySelectorAll('input[type="date"]').forEach(x=>x.value=today());
+  }catch(err){msg('Save error: '+err.message);}
+  finally{if(submit){submit.disabled=false;submit.textContent='Save';}}
+ });
+}
+bindForm('cashForm','cash',['amount']);
+bindForm('accountForm','accounts',['opening_balance']);
+bindForm('bankForm','bank',['amount']);
+bindForm('expenseForm','expenses',['amount']);
+bindForm('stockForm','stock',['qty','price']);
+bindForm('lcForm','lc',['amount']);
+document.querySelectorAll('input[type="date"]').forEach(x=>x.value=today());
+
+$('accountType').onchange=()=>{
+ $('companyBox').classList.toggle('hidden',$('accountType').value!=='company');
+};
+$('signup').onclick=async()=>{
+ if(!db)return alert('Supabase configuration পরীক্ষা করুন।');
+ if(!$('loginForm').reportValidity())return;
+ const type=$('accountType').value;
+ const company=$('companyName').value.trim();
+ if(type==='company'&&!company)return alert('Company Name দিন।');
+ try{
+  const {error}=await db.auth.signUp({
+   email:$('email').value.trim(),
+   password:$('password').value,
+   options:{data:{
+    display_name:$('displayName').value.trim(),
+    account_type:type,
+    company_name:company
+   }}
+  });
+  if(error)throw error;
+  $('loginMsg').textContent='Signup অনুরোধ হয়েছে। Email confirmation চাইলে email verify করুন, তারপর Login করুন।';
+ }catch(e){$('loginMsg').textContent='Signup error: '+e.message;}
+};
+$('loginForm').onsubmit=async e=>{
+ e.preventDefault();
+ try{
+  const {data,error}=await db.auth.signInWithPassword({
+   email:$('email').value.trim(),
+   password:$('password').value
+  });
+  if(error)throw error;
+  user=data.user;
+  await afterLogin();
+ }catch(e){$('loginMsg').textContent='Login error: '+e.message;}
+};
+$('resetPassword').onclick=async()=>{
+ const email=$('email').value.trim();
+ if(!email)return alert('আগে Email লিখুন।');
+ try{
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.href});
+  if(error)throw error;
+  $('loginMsg').textContent='Password reset email পাঠানো হয়েছে।';
+ }catch(e){$('loginMsg').textContent=e.message;}
+};
+async function afterLogin(){
+ const {data:p,error}=await db.from('profiles').select('*').eq('id',user.id).maybeSingle();
+ if(error)throw error;
+ if(!p)throw Error('Profile পাওয়া যায়নি। Signup trigger / SQL পরীক্ষা করুন।');
+ profile=p;
+ personal=p.account_type==='personal';
+ workspaceId=p.workspace_id;
+ if(p.active!==true||p.approved!==true||p.role==='pending')throw Error('Account active নয় বা অনুমোদিত নয়।');
+ if(p.account_type==='company'&&!workspaceId)throw Error('Company workspace পাওয়া যায়নি। SQL trigger পরীক্ষা করুন।');
+ $('login').classList.add('hidden');
+ $('app').classList.remove('hidden');
+ $('accountLabel').textContent=(p.display_name||p.email)+' | '+(personal?'Personal Account':'Company Account');
+ showPage('dashboard');
+ await refresh();
+}
+$('logout').onclick=async()=>{await db.auth.signOut();location.reload();};
+function download(name,content,type){
+ const url=URL.createObjectURL(new Blob([content],{type}));
+ const a=document.createElement('a');a.href=url;a.download=name;a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+$('csv').onclick=()=>{
+ const lines=[];
+ for(const [k,data] of Object.entries(rows)){
+  lines.push('SECTION,'+k);
+  if(data.length){
+   const keys=Object.keys(data[0]);
+   lines.push(keys.join(','));
+   data.forEach(r=>lines.push(keys.map(x=>'"'+String(r[x]??'').replace(/"/g,'""')+'"').join(',')));
+  }
+ }
+ download('lc-business-backup.csv','\ufeff'+lines.join('\r\n'),'text/csv;charset=utf-8');
+};
+$('json').onclick=()=>download('lc-backup.json',JSON.stringify({date:new Date().toISOString(),data:rows},null,2),'application/json');
+$('restore').onclick=()=>$('restoreFile').click();
+$('restoreFile').onchange=async e=>{
+ const file=e.target.files[0];if(!file)return;
+ try{
+  const backup=JSON.parse(await file.text());
+  if(!backup.data)throw Error('Backup format সঠিক নয়।');
+  if(!confirm('Backup থেকে data Database-এ যোগ করবেন? Duplicate entry হতে পারে।'))return;
+  for(const k of Object.keys(tableNames)){
+   for(const old of (backup.data[k]||[])){
+    const item={...old};
+    delete item.id;delete item.created_at;
+    item.owner_id=user.id;item.workspace_id=personal?null:workspaceId;
+    const {error}=await db.from(tableNames[k]).insert(item);
+    if(error)throw error;
+   }
+  }
+  await refresh();msg('Backup data যোগ হয়েছে।');
+ }catch(err){msg('Restore error: '+err.message);}
+};
+async function start(){
+ if(SUPABASE_KEY.includes('PASTE_')){
+  $('loginMsg').textContent='কোডে Supabase Publishable Key বসান।';
+  return;
+ }
+ db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+ const {data,error}=await db.auth.getSession();
+ if(error)throw error;
+ if(data.session){user=data.session.user;await afterLogin();}
+ else $('loginMsg').textContent='Login করুন অথবা নতুন Account তৈরি করুন।';
+ db.auth.onAuthStateChange((_event,session)=>{
+  if(!session){
+   $('app').classList.add('hidden');
+   $('login').classList.remove('hidden');
+  }
+ });
+}
+start().catch(e=>{$('loginMsg').textContent='Connection/Profile error: '+e.message;});
 </script>
 </body>
 </html>
