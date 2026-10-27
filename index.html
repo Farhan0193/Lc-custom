@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -15,6 +16,7 @@ main{max-width:1150px;margin:auto;padding:12px}
 label{display:block;font-size:13px;margin:8px 0 4px;color:#475569}
 input,select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:7px}
 button{border:0;border-radius:7px;background:#2563eb;color:white;padding:10px 13px;cursor:pointer}
+button:disabled{opacity:.55}
 .secondary{background:#475569}
 .green{background:#087f5b}
 .red{background:#b42318}
@@ -38,7 +40,7 @@ th{background:#e8eff8}
 @media print{
  @page{size:A4 landscape;margin:10mm}
  body{background:white;color:black;font-size:10px}
- header,nav,.no-print,form,.actions,.deletecol,#auth,#setup{display:none!important}
+ header,nav,.no-print,form{display:none!important}
  main{padding:0;margin:0;max-width:none}
  .page{display:none!important}
  body[data-print="dashboard"] #dashboard,
@@ -52,7 +54,7 @@ th{background:#e8eff8}
  .card{border:0;padding:3px;margin:0}
  .printhead{display:block!important;text-align:center;margin-bottom:12px}
  .tablewrap{overflow:visible}
- table{min-width:0;width:100%;table-layout:auto}
+ table{min-width:0;width:100%}
  th,td{font-size:9px;padding:5px;overflow-wrap:anywhere}
 }
 </style>
@@ -63,10 +65,10 @@ th{background:#e8eff8}
 
 <section id="auth" class="card">
 <h3>Email Login / Signup</h3>
-<p class="muted">আপনার অনুমোদিত Email ও Password ব্যবহার করুন। Password কমপক্ষে ৮ অক্ষরের হতে হবে।</p>
+<p class="muted">নিজের অনুমোদিত Email ও Password ব্যবহার করুন। Password কমপক্ষে ৮ অক্ষরের হতে হবে।</p>
 <form id="authForm">
 <label>Email</label>
-<input name="email" type="email" autocomplete="email" required>
+<input name="email" type="email" autocomplete="username" required>
 <label>Password</label>
 <input name="password" type="password" minlength="8" autocomplete="current-password" required>
 <div class="actions">
@@ -75,23 +77,23 @@ th{background:#e8eff8}
 <button type="button" class="secondary" id="resetBtn">Reset Password</button>
 </div>
 </form>
-<p id="authMsg" class="message"></p>
+<p id="authMsg" class="message">আপনার account দিয়ে Sign In করুন।</p>
 </section>
 
 <section id="setup" class="card hidden">
 <h3>Account Setup</h3>
-<p>Personal account হলে শুধু নিজের হিসাব ব্যবহার করবেন। Company account তৈরি ও Admin approval-এর জন্য Supabase SQL সেটআপ প্রয়োজন।</p>
+<p class="muted">Personal account নিজের হিসাবের জন্য। Company account ব্যবহারের জন্য অনুমোদিত workspace প্রয়োজন।</p>
 <label>Account Type</label>
 <select id="accountType">
-<option value="personal">Personal</option>
-<option value="company">Company</option>
+<option value="personal">Personal Account</option>
+<option value="company">Company Account</option>
 </select>
 <div id="companyWrap" class="hidden">
 <label>Company Name</label>
 <input id="companyName" placeholder="Company name">
 </div>
 <div class="actions">
-<button id="setupBtn">Continue</button>
+<button id="setupBtn">Create / Continue</button>
 <button class="secondary" id="setupLogout">Logout</button>
 </div>
 <p id="setupMsg" class="message"></p>
@@ -101,19 +103,19 @@ th{background:#e8eff8}
 <div class="card">
 <b id="userEmail"></b>
 <div id="workspaceLabel" class="muted"></div>
-<p id="appMsg" class="message">Supabase connection status</p>
+<p id="appMsg" class="message"></p>
 <button id="logoutBtn" class="red">Logout</button>
 </div>
 
 <nav class="no-print">
-<button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
-<button onclick="showPage('cash',this)">Cash Book</button>
-<button onclick="showPage('bank',this)">Bank Statement</button>
-<button onclick="showPage('accounts',this)">Bank Accounts</button>
-<button onclick="showPage('expenses',this)">Expenses</button>
-<button onclick="showPage('stock',this)">Stock</button>
-<button onclick="showPage('lc',this)">LC Records</button>
-<button onclick="showPage('reports',this)">Reports</button>
+<button class="active" data-page="dashboard">Dashboard</button>
+<button data-page="cash">Cash Book</button>
+<button data-page="bank">Bank Statement</button>
+<button data-page="accounts">Bank Accounts</button>
+<button data-page="expenses">Expenses</button>
+<button data-page="stock">Stock</button>
+<button data-page="lc">LC Records</button>
+<button data-page="reports">Reports</button>
 </nav>
 
 <section id="dashboard" class="page active">
@@ -123,7 +125,7 @@ th{background:#e8eff8}
 <div class="statgrid">
 <div class="stat">Cash Balance<strong id="dashCash">৳0.00</strong></div>
 <div class="stat">Bank Balance<strong id="dashBank">৳0.00</strong></div>
-<div class="stat">Stock Items<strong id="dashStock">0</strong></div>
+<div class="stat">Stock Records<strong id="dashStock">0</strong></div>
 <div class="stat">Total Expenses<strong id="dashExpense">৳0.00</strong></div>
 </div>
 <div class="actions no-print"><button onclick="printReport('dashboard')">Print / Save PDF</button></div>
@@ -132,7 +134,7 @@ th{background:#e8eff8}
 
 <section id="cash" class="page">
 <div class="card no-print">
-<h3>Cash Book — নতুন হিসাব</h3>
+<h3>নতুন Cash Transaction</h3>
 <form id="cashForm">
 <div class="grid">
 <div><label>Date</label><input name="date" type="date" required></div>
@@ -142,7 +144,7 @@ th{background:#e8eff8}
 <div><label>Amount (৳)</label><input name="amount" type="number" min=".01" step=".01" required></div>
 <div><label>Note</label><input name="note"></div>
 </div>
-<div class="actions"><button>Save Cash Transaction</button></div>
+<div class="actions"><button type="submit">Save Cash Transaction</button></div>
 </form>
 </div>
 <div class="card">
@@ -151,17 +153,11 @@ th{background:#e8eff8}
 <div class="grid no-print">
 <div><label>From Date</label><input id="cashFrom" type="date"></div>
 <div><label>To Date</label><input id="cashTo" type="date"></div>
-<div><label>Search Name</label><input id="cashSearch"></div>
+<div><label>Search</label><input id="cashSearch"></div>
 </div>
-<div class="actions no-print">
-<button onclick="renderCash()">Apply</button>
-<button class="green" onclick="printReport('cash')">Print / Save PDF</button>
-</div>
+<div class="actions no-print"><button onclick="renderCash()">Apply</button><button class="green" onclick="printReport('cash')">Print / Save PDF</button></div>
 <div id="cashSummary"></div>
-<div class="tablewrap"><table><thead><tr>
-<th>Date</th><th>Account Name / Details</th><th>Reference</th>
-<th>Cash In</th><th>Cash Out</th><th>Running Balance</th>
-</tr></thead><tbody id="cashRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Details</th><th>Reference</th><th>Cash In</th><th>Cash Out</th><th>Balance</th></tr></thead><tbody id="cashRows"></tbody></table></div>
 </div>
 </section>
 
@@ -170,38 +166,32 @@ th{background:#e8eff8}
 <h3>Bank Transaction Entry</h3>
 <form id="bankForm">
 <div class="grid">
-<div><label>Bank Name</label><input name="bank_name" required placeholder="Pubali Bank"></div>
-<div><label>Account Name</label><input name="account_name" required placeholder="M/S Hili Impex"></div>
+<div><label>Bank Name</label><input name="bank_name" required></div>
+<div><label>Account Name</label><input name="account_name" required></div>
 <div><label>Account Number</label><input name="account_number" required></div>
-<div><label>Routing Number</label><input name="routing" placeholder="Routing number"></div>
+<div><label>Routing Number</label><input name="routing"></div>
 <div><label>Branch</label><input name="branch"></div>
 <div><label>Date</label><input name="date" type="date" required></div>
-<div><label>Details / Transaction Name</label><input name="note" required></div>
+<div><label>Details</label><input name="note" required></div>
 <div><label>Cheque / Reference</label><input name="ref"></div>
 <div><label>Type</label><select name="type"><option value="in">Deposit / Credit</option><option value="out">Withdrawal / Debit</option></select></div>
 <div><label>Amount (৳)</label><input name="amount" type="number" min=".01" step=".01" required></div>
 </div>
-<div class="actions"><button>Save Bank Transaction</button></div>
+<div class="actions"><button type="submit">Save Bank Transaction</button></div>
 </form>
 </div>
 <div class="card">
-<div class="printhead"><h2 id="bankPrintCompany">LC Management</h2><h3>Bank Statement</h3><div id="bankPrintMeta"></div></div>
-<h3>Bank Statement Report</h3>
+<div class="printhead"><h2>LC Management</h2><h3>Bank Statement</h3><div id="bankPrintMeta"></div></div>
+<h3>Bank Statement</h3>
 <div class="grid no-print">
-<div><label>Select Bank Account</label><select id="bankFilter"><option value="all">All Accounts</option></select></div>
+<div><label>Bank Account</label><select id="bankFilter"><option value="all">All Accounts</option></select></div>
 <div><label>From Date</label><input id="bankFrom" type="date"></div>
 <div><label>To Date</label><input id="bankTo" type="date"></div>
-<div><label>Search Description / Account</label><input id="bankSearch"></div>
+<div><label>Search</label><input id="bankSearch"></div>
 </div>
-<div class="actions no-print">
-<button onclick="renderBank()">Apply</button>
-<button class="green" onclick="printReport('bank')">Print / Save PDF</button>
-</div>
+<div class="actions no-print"><button onclick="renderBank()">Apply</button><button class="green" onclick="printReport('bank')">Print / Save PDF</button></div>
 <div id="bankSummary"></div>
-<div class="tablewrap"><table><thead><tr>
-<th>Date</th><th>Account / Bank</th><th>Routing No.</th><th>Account Number</th>
-<th>Details</th><th>Reference</th><th>Debit</th><th>Credit</th><th>Balance</th>
-</tr></thead><tbody id="bankRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Bank</th><th>Account Number</th><th>Details</th><th>Reference</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody id="bankRows"></tbody></table></div>
 </div>
 </section>
 
@@ -218,14 +208,14 @@ th{background:#e8eff8}
 <div><label>Opening Date</label><input name="date" type="date" required></div>
 <div><label>Opening Balance (৳)</label><input name="opening" type="number" step=".01" required value="0"></div>
 </div>
-<div class="actions"><button>Save Bank Account</button></div>
+<div class="actions"><button type="submit">Save Bank Account</button></div>
 </form>
 </div>
 <div class="card">
 <div class="printhead"><h2>LC Management</h2><h3>Bank Account List</h3></div>
 <h3>Bank Account List</h3>
 <div class="actions no-print"><button class="green" onclick="printReport('accounts')">Print / Save PDF</button></div>
-<div class="tablewrap"><table><thead><tr><th>Bank</th><th>Account Name</th><th>Account Number</th><th>Routing</th><th>Branch</th><th>Opening Date</th><th>Opening Balance</th><th>Current Balance</th></tr></thead><tbody id="accountRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Bank</th><th>Account Name</th><th>Account Number</th><th>Routing</th><th>Branch</th><th>Date</th><th>Opening Balance</th><th>Current Balance</th></tr></thead><tbody id="accountRows"></tbody></table></div>
 </div>
 </section>
 
@@ -239,7 +229,8 @@ th{background:#e8eff8}
 <div><label>Description</label><input name="note" required></div>
 <div><label>Payment Method</label><select name="method"><option>Cash</option><option>Bank</option><option>Other</option></select></div>
 <div><label>Amount (৳)</label><input name="amount" type="number" min=".01" step=".01" required></div>
-</div><div class="actions"><button>Save Expense</button></div>
+</div>
+<div class="actions"><button type="submit">Save Expense</button></div>
 </form>
 </div>
 <div class="card">
@@ -255,7 +246,8 @@ th{background:#e8eff8}
 <section id="stock" class="page">
 <div class="card no-print">
 <h3>Warehouse Stock Entry</h3>
-<form id="stockForm"><div class="grid">
+<form id="stockForm">
+<div class="grid">
 <div><label>Date</label><input name="date" type="date" required></div>
 <div><label>Product Name</label><input name="name" required></div>
 <div><label>Item Code</label><input name="code"></div>
@@ -264,7 +256,9 @@ th{background:#e8eff8}
 <div><label>Unit</label><input name="unit" required placeholder="pcs/kg/carton"></div>
 <div><label>Unit Cost (৳)</label><input name="cost" type="number" min="0" step=".01" value="0"></div>
 <div><label>Note</label><input name="note"></div>
-</div><div class="actions"><button>Save Stock</button></div></form>
+</div>
+<div class="actions"><button type="submit">Save Stock</button></div>
+</form>
 </div>
 <div class="card">
 <div class="printhead"><h2>LC Management</h2><h3>Warehouse Stock Report</h3></div>
@@ -276,17 +270,22 @@ th{background:#e8eff8}
 </section>
 
 <section id="lc" class="page">
-<div class="card no-print"><h3>LC Entry</h3>
-<form id="lcForm"><div class="grid">
+<div class="card no-print">
+<h3>LC Entry</h3>
+<form id="lcForm">
+<div class="grid">
 <div><label>LC Number</label><input name="lc_no" required></div>
 <div><label>Supplier</label><input name="supplier" required></div>
 <div><label>Bank Name</label><input name="bank_name" required></div>
 <div><label>LC Date</label><input name="date" type="date" required></div>
 <div><label>Amount (৳)</label><input name="amount" type="number" min="0" step=".01" required></div>
 <div><label>Status</label><select name="status"><option>Open</option><option>Documents Received</option><option>Paid</option><option>Closed</option></select></div>
-</div><div class="actions"><button>Save LC Record</button></div></form>
 </div>
-<div class="card"><div class="printhead"><h2>LC Management</h2><h3>LC Records</h3></div>
+<div class="actions"><button type="submit">Save LC Record</button></div>
+</form>
+</div>
+<div class="card">
+<div class="printhead"><h2>LC Management</h2><h3>LC Records</h3></div>
 <h3>LC Records</h3>
 <div class="actions no-print"><button class="green" onclick="printReport('lc')">Print / Save PDF</button></div>
 <div class="tablewrap"><table><thead><tr><th>LC No.</th><th>Date</th><th>Supplier</th><th>Bank</th><th>Amount</th><th>Status</th></tr></thead><tbody id="lcRows"></tbody></table></div>
@@ -294,225 +293,683 @@ th{background:#e8eff8}
 </section>
 
 <section id="reports" class="page">
-<div class="card"><div class="printhead"><h2>LC Management</h2><h3>Summary Report</h3></div><h3>Summary Report</h3>
+<div class="card">
+<div class="printhead"><h2>LC Management</h2><h3>Summary Report</h3></div>
+<h3>Summary Report</h3>
 <div id="reportSummary"></div>
-<div class="actions no-print"><button onclick="exportCSV()">Export CSV</button><button onclick="printReport('reports')">Print / Save PDF</button></div></div>
+<div class="actions no-print"><button onclick="exportCSV()">Export CSV</button><button onclick="exportJSON()">Backup JSON</button><button onclick="printReport('reports')">Print / Save PDF</button></div>
+</div>
 </section>
 </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* Public browser config only. Never paste service_role or secret keys here. */
-const SUPABASE_URL="https://mhxnecgkwqxjalgacxkt.supabase.co";
-const SUPABASE_KEY="sb_publishable_0pfcYZYvQm01CYwF2TlzLw_c2m49p_f";
+"use strict";
 
-const $=id=>document.getElementById(id);
-const money=n=>'৳'+Number(n||0).toLocaleString('en-BD',{minimumFractionDigits:2,maximumFractionDigits:2});
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const today=()=>new Date().toISOString().slice(0,10);
-let sb=null,user=null,profile=null,workspaceId=null,personalMode=true;
-const data={cash:[],bank:[],accounts:[],expenses:[],stock:[],lc:[]};
-const tableMap={cash:'cash_transactions',bank:'bank_transactions',accounts:'bank_accounts',expenses:'expenses',stock:'stock_items',lc:'lc_records'};
+/* Browser-এ শুধু publishable key ব্যবহার করবেন।
+   কখনো service_role বা secret key এখানে দেবেন না। */
+const SUPABASE_URL = "https://mhxnecgkwqxjalgacxkt.supabase.co";
+const SUPABASE_KEY = "sb_publishable_0pfcYZYvQm01CYwF2TlzLw_c2m49p_f";
 
-function showPage(id,btn){
- document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));
- document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
- if(btn)btn.classList.add('active');
-}
-function message(id,text){$(id).textContent=text}
-function printReport(id){
- document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));
- if(id==='bank')renderBank();
- if(id==='cash')renderCash();
- if(id==='expenses')renderExpenses();
- if(id==='stock')renderStock();
- document.body.dataset.print=id;
- setTimeout(()=>window.print(),250);
-}
-window.addEventListener('afterprint',()=>delete document.body.dataset.print);
-function filterQuery(query){
- return personalMode?query.eq('owner_id',user.id):query.eq('workspace_id',workspaceId);
-}
-async function readTable(key){
- let q=sb.from(tableMap[key]).select('*');
- q=filterQuery(q);
- const {data:rows,error}=await q.order('created_at',{ascending:true});
- if(error)throw error;
- return rows||[];
-}
-async function reload(){
- for(const k of Object.keys(tableMap))data[k]=await readTable(k);
- renderAll();
-}
-async function saveRow(key,row){
- row.owner_id=user.id;
- row.workspace_id=personalMode?null:workspaceId;
- const {error}=await sb.from(tableMap[key]).insert(row);
- if(error)throw error;
- await reload();
-}
-function bindForm(id,key,fields){
- $(id).addEventListener('submit',async e=>{
-  e.preventDefault();
-  if(!user)return;
-  const f=new FormData(e.currentTarget),row={};
-  fields.forEach(k=>row[k]=f.get(k));
-  ['amount','opening','qty','cost'].forEach(k=>{
-   if(row[k]!==undefined)row[k]=Number(row[k]||0);
-  });
-  try{
-   await saveRow(key,row);
-   e.currentTarget.reset();
-   e.currentTarget.querySelectorAll('input[type=date]').forEach(x=>x.value=today());
-   message('appMsg','তথ্য Supabase-এ সংরক্ষণ হয়েছে।');
-  }catch(err){message('appMsg','Save error: '+err.message)}
- });
-}
-function rowsHTML(items,fn){
- return items.map(x=>'<tr>'+fn(x).map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="10">কোনো তথ্য নেই</td></tr>';
-}
-function inDates(x,from,to){return (!from||x>=from)&&(!to||x<=to)}
-function renderCash(){
- const f=$('cashFrom').value,t=$('cashTo').value,q=$('cashSearch').value.toLowerCase();
- const items=data.cash.filter(x=>inDates(x.date,f,t)&&`${x.name||''} ${x.ref||''} ${x.note||''}`.toLowerCase().includes(q)).sort((a,b)=>a.date.localeCompare(b.date));
- let balance=0,ins=0,outs=0;
- $('cashRows').innerHTML=rowsHTML(items,x=>{
-  const amount=Number(x.amount||0);
-  if(x.type==='in'){balance+=amount;ins+=amount}else{balance-=amount;outs+=amount}
-  return [esc(x.date),esc(x.name||x.note||''),esc(x.ref||''),x.type==='in'?money(amount):'—',x.type==='out'?money(amount):'—',money(balance)];
- });
- $('cashSummary').textContent=`Total In: ${money(ins)} | Total Out: ${money(outs)} | Net: ${money(ins-outs)}`;
- $('cashPrintMeta').textContent=`Period: ${f||'Start'} to ${t||'Today'} | In: ${money(ins)} | Out: ${money(outs)}`;
-}
-function renderBank(){
- const f=$('bankFrom').value,t=$('bankTo').value,q=$('bankSearch').value.toLowerCase(),filter=$('bankFilter').value;
- let items=data.bank.filter(x=>inDates(x.date,f,t)&&(filter==='all'||x.account_id===filter)&&`${x.bank_name||''} ${x.account_name||''} ${x.account_number||''} ${x.note||''} ${x.ref||''}`.toLowerCase().includes(q)).sort((a,b)=>a.date.localeCompare(b.date));
- let balance=0,ins=0,outs=0;
- const acct=data.accounts.find(a=>a.id===filter);
- if(filter!=='all'&&acct)balance=Number(acct.opening||0);
- $('bankRows').innerHTML=rowsHTML(items,x=>{
-  const amount=Number(x.amount||0);
-  if(x.type==='in'){balance+=amount;ins+=amount}else{balance-=amount;outs+=amount}
-  return [esc(x.date),esc(x.bank_name||''),esc(x.routing||''),esc(x.account_number||''),esc(x.note||''),esc(x.ref||'—'),x.type==='out'?money(amount):'—',x.type==='in'?money(amount):'—',money(balance)];
- });
- const opts=['<option value="all">All Accounts</option>',...data.accounts.map(a=>`<option value="${esc(a.id)}">${esc(a.bank_name)} — ${esc(a.account_name)} (${esc(a.account_number)})</option>`)];
- const old=$('bankFilter').value;
- $('bankFilter').innerHTML=opts.join('');
- if(old==='all'||data.accounts.some(a=>a.id===old))$('bankFilter').value=old;
- $('bankSummary').textContent=`Opening: ${money(acct?.opening||0)} | Credit: ${money(ins)} | Debit: ${money(outs)} | Net Movement: ${money(ins-outs)}`;
- $('bankPrintMeta').textContent=`Account: ${acct?acct.bank_name+' / '+acct.account_name:'All Accounts'} | Period: ${f||'Start'} to ${t||'Today'} | Credit: ${money(ins)} | Debit: ${money(outs)} | Net: ${money(ins-outs)}`;
-}
-function renderAccounts(){
- $('accountRows').innerHTML=rowsHTML(data.accounts,a=>{
-  const tx=data.bank.filter(x=>x.account_number===a.account_number&&x.bank_name===a.bank_name);
-  const balance=Number(a.opening||0)+tx.reduce((s,x)=>s+(x.type==='in'?Number(x.amount):-Number(x.amount)),0);
-  return [esc(a.bank_name),esc(a.account_name),esc(a.account_number),esc(a.routing||''),esc(a.branch||''),esc(a.date),money(a.opening),money(balance)];
- });
-}
-function renderExpenses(){
- const f=$('expenseFrom').value,t=$('expenseTo').value,q=$('expenseSearch').value.toLowerCase();
- const items=data.expenses.filter(x=>inDates(x.date,f,t)&&`${x.category||''} ${x.note||''}`.toLowerCase().includes(q)).sort((a,b)=>a.date.localeCompare(b.date));
- const total=items.reduce((s,x)=>s+Number(x.amount||0),0);
- $('expenseRows').innerHTML=rowsHTML(items,x=>[esc(x.date),esc(x.category),esc(x.note),esc(x.method||''),money(x.amount)]);
- $('expenseSummary').textContent=`Total Expenses: ${money(total)}`;
- $('expensePrintMeta').textContent=`Period: ${f||'Start'} to ${t||'Today'} | Total: ${money(total)}`;
-}
-function renderStock(){
- const q=$('stockSearch').value.toLowerCase();
- const items=data.stock.filter(x=>`${x.name||''} ${x.code||''}`.toLowerCase().includes(q)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
- $('stockRows').innerHTML=rowsHTML(items,x=>[esc(x.date||''),esc(x.name),esc(x.code||''),x.type==='out'?'Stock Out':'Stock In',esc(x.qty),esc(x.unit||''),money(x.cost),money(Number(x.qty||0)*Number(x.cost||0))]);
-}
-function renderLC(){
- $('lcRows').innerHTML=rowsHTML(data.lc,x=>[esc(x.lc_no),esc(x.date),esc(x.supplier),esc(x.bank_name),money(x.amount),esc(x.status)]);
-}
-function renderAll(){
- renderCash();renderBank();renderAccounts();renderExpenses();renderStock();renderLC();
- $('dashCash').textContent=money(data.cash.reduce((s,x)=>s+(x.type==='in'?Number(x.amount):-Number(x.amount)),0));
- $('dashBank').textContent=money(data.accounts.reduce((s,a)=>{
-  const tx=data.bank.filter(x=>x.bank_name===a.bank_name&&x.account_number===a.account_number);
-  return s+Number(a.opening||0)+tx.reduce((z,x)=>z+(x.type==='in'?Number(x.amount):-Number(x.amount)),0);
- },0));
- $('dashStock').textContent=data.stock.length;
- $('dashExpense').textContent=money(data.expenses.reduce((s,x)=>s+Number(x.amount||0),0));
- $('reportSummary').innerHTML=`<p>Cash Balance: <b>${money(Number($('dashCash').textContent.replace(/[৳,]/g,'')))}</b></p><p>Bank Balance: <b>${$('dashBank').textContent}</b></p><p>Total Expenses: <b>${$('dashExpense').textContent}</b></p><p>Stock records: <b>${data.stock.length}</b></p><p>LC records: <b>${data.lc.length}</b></p>`;
-}
-function exportCSV(){
- const rows=[['Section','Date','Name/Details','Amount']];
- data.cash.forEach(x=>rows.push(['Cash',x.date,x.name||x.note,x.amount]));
- data.bank.forEach(x=>rows.push(['Bank',x.date,`${x.bank_name} ${x.account_name} ${x.note}`,x.amount]));
- data.expenses.forEach(x=>rows.push(['Expense',x.date,`${x.category} ${x.note}`,x.amount]));
- const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
- const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='lc-management-report.csv';a.click();URL.revokeObjectURL(a.href);
-}
-function showAuth(){ $('auth').classList.remove('hidden');$('setup').classList.add('hidden');$('app').classList.add('hidden'); }
-async function afterLogin(){
- try{
-  $('auth').classList.add('hidden');
-  const {data:p,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
-  if(error)throw error;
-  if(!p){$('setup').classList.remove('hidden');$('app').classList.add('hidden');return}
-  profile=p;personalMode=p.account_type==='personal';workspaceId=p.workspace_id;
-  $('setup').classList.add('hidden');$('app').classList.remove('hidden');
-  $('userEmail').textContent=user.email;
-  $('workspaceLabel').textContent=personalMode?'Personal Account':`Company Account — ${p.role||'member'}`;
-  await reload();
-  message('appMsg','Supabase-এ সংযুক্ত। RLS policy সঠিকভাবে চালু থাকা আবশ্যক।');
- }catch(e){message('authMsg','Login/Setup error: '+e.message);showAuth()}
-}
-async function boot(){
- if(!window.supabase){message('authMsg','Supabase library load হয়নি। Internet connection পরীক্ষা করুন।');return}
- sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
- const {data:{session}}=await sb.auth.getSession();
- if(session){user=session.user;await afterLogin()}
- sb.auth.onAuthStateChange((_event,session)=>{
-  user=session?.user||null;
-  if(!user)showAuth();
- });
-}
-$('authForm').addEventListener('submit',async e=>{
- e.preventDefault();
- const f=new FormData(e.currentTarget);
- const {data,error}=await sb.auth.signInWithPassword({email:f.get('email'),password:f.get('password')});
- message('authMsg',error?error.message:'Login request সফল হয়েছে।');
- if(!error){user=data.user;await afterLogin()}
+const $ = id => document.getElementById(id);
+const money = n => "৳" + Number(n || 0).toLocaleString("en-BD", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
 });
-$('signupBtn').onclick=async()=>{
- const f=new FormData($('authForm'));
- if(!f.get('email')||!f.get('password'))return message('authMsg','Email ও Password দিন।');
- const {data,error}=await sb.auth.signUp({email:f.get('email'),password:f.get('password')});
- message('authMsg',error?error.message:(data.session?'Signup হয়েছে।':'Signup হয়েছে। ইমেইল confirmation প্রয়োজন হতে পারে।'));
- if(data?.user&&data.session){user=data.user;await afterLogin()}
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+const today = () => new Date().toISOString().slice(0,10);
+
+let sb = null;
+let user = null;
+let profile = null;
+let workspaceId = null;
+let personalMode = true;
+let busy = false;
+
+const data = {
+  cash:[], bank:[], accounts:[], expenses:[], stock:[], lc:[]
 };
-$('resetBtn').onclick=async()=>{
- const email=$('authForm').elements.email.value;
- if(!email)return message('authMsg','আগে Email লিখুন।');
- const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href});
- message('authMsg',error?error.message:'Password reset email পাঠানো হয়েছে।');
+
+const tableMap = {
+  cash:"cash_transactions",
+  bank:"bank_transactions",
+  accounts:"bank_accounts",
+  expenses:"expenses",
+  stock:"stock_items",
+  lc:"lc_records"
 };
-$('accountType').onchange=()=> $('companyWrap').classList.toggle('hidden',$('accountType').value!=='company');
-$('setupBtn').onclick=async()=>{
- try{
-  const type=$('accountType').value,name=$('companyName').value.trim();
-  if(type==='company'&&!name)throw Error('Company name লিখুন।');
-  message('setupMsg','Setup চলছে...');
-  const {data,error}=await sb.rpc('create_initial_profile',{p_account_type:type,p_company_name:name||null});
-  if(error)throw error;
-  await afterLogin();
- }catch(e){message('setupMsg','Setup failed: '+e.message+' — SQL setup সম্পন্ন হয়েছে কি না পরীক্ষা করুন।')}
-};
-$('logoutBtn').onclick=$('setupLogout').onclick=async()=>{await sb.auth.signOut();user=null;profile=null;showAuth()};
-bindForm('cashForm','cash',['date','type','name','ref','note','amount']);
-bindForm('bankForm','bank',['bank_name','account_name','account_number','routing','branch','date','type','note','ref','amount']);
-bindForm('accountForm','accounts',['bank_name','account_name','account_number','routing','branch','date','opening']);
-bindForm('expenseForm','expenses',['date','category','note','method','amount']);
-bindForm('stockForm','stock',['date','name','code','type','qty','unit','cost','note']);
-bindForm('lcForm','lc',['lc_no','supplier','bank_name','date','amount','status']);
-['cashFrom','cashTo','cashSearch'].forEach(id=>$(id).addEventListener('input',renderCash));
-['bankFrom','bankTo','bankSearch','bankFilter'].forEach(id=>$(id).addEventListener('input',renderBank));
-['expenseFrom','expenseTo','expenseSearch'].forEach(id=>$(id).addEventListener('input',renderExpenses));
-$('stockSearch').addEventListener('input',renderStock);
-document.querySelectorAll('input[type=date][name=date]').forEach(x=>x.value=today());
+
+function message(id, text) {
+  $(id).textContent = text;
+}
+
+function setBusy(value) {
+  busy = value;
+  document.querySelectorAll("#authForm button").forEach(b => b.disabled = value);
+}
+
+function showAuth(text) {
+  $("auth").classList.remove("hidden");
+  $("setup").classList.add("hidden");
+  $("app").classList.add("hidden");
+  if (text) message("authMsg", text);
+}
+
+function showPage(id, btn) {
+  document.querySelectorAll(".page").forEach(p =>
+    p.classList.toggle("active", p.id === id)
+  );
+  document.querySelectorAll("nav button").forEach(b =>
+    b.classList.toggle("active", b.dataset.page === id)
+  );
+}
+
+document.querySelectorAll("nav button[data-page]").forEach(btn => {
+  btn.addEventListener("click", () => showPage(btn.dataset.page, btn));
+});
+
+function printReport(id) {
+  showPage(id);
+  if (id === "cash") renderCash();
+  if (id === "bank") renderBank();
+  if (id === "expenses") renderExpenses();
+  if (id === "stock") renderStock();
+  document.body.dataset.print = id;
+  setTimeout(() => window.print(), 250);
+}
+
+window.addEventListener("afterprint", () => {
+  delete document.body.dataset.print;
+});
+
+function checkSession() {
+  if (!user || !user.id) throw new Error("আপনি Sign In করেননি।");
+}
+
+function filterQuery(query) {
+  checkSession();
+
+  if (personalMode) {
+    return query.eq("owner_id", user.id);
+  }
+
+  if (!workspaceId || typeof workspaceId !== "string") {
+    throw new Error("Company workspace তৈরি হয়নি। Setup প্রয়োজন।");
+  }
+
+  return query.eq("workspace_id", workspaceId);
+}
+
+async function readTable(key) {
+  const table = tableMap[key];
+  let q = sb.from(table).select("*");
+  q = filterQuery(q);
+
+  const {data: rows, error} = await q.order("created_at", {
+    ascending:true
+  });
+
+  if (error) throw error;
+  return rows || [];
+}
+
+async function reload() {
+  checkSession();
+
+  for (const key of Object.keys(tableMap)) {
+    data[key] = await readTable(key);
+  }
+
+  renderAll();
+}
+
+async function saveRow(key, row) {
+  checkSession();
+
+  if (!profile || profile.approved === false) {
+    throw new Error("আপনার account এখনো অনুমোদিত নয়।");
+  }
+
+  if (!personalMode && !workspaceId) {
+    throw new Error("Company workspace পাওয়া যায়নি।");
+  }
+
+  row.owner_id = user.id;
+
+  if (!personalMode) {
+    row.workspace_id = workspaceId;
+  }
+
+  const {error} = await sb.from(tableMap[key]).insert(row);
+  if (error) throw error;
+
+  await reload();
+}
+
+function bindForm(id, key, fields) {
+  $(id).addEventListener("submit", async e => {
+    e.preventDefault();
+    if (!user || busy) return;
+
+    const submit = e.currentTarget.querySelector('button[type="submit"]');
+    if (submit) submit.disabled = true;
+
+    try {
+      const form = new FormData(e.currentTarget);
+      const row = {};
+
+      fields.forEach(k => {
+        const value = form.get(k);
+        if (value !== null) row[k] = value;
+      });
+
+      ["amount","opening","qty","cost"].forEach(k => {
+        if (row[k] !== undefined) row[k] = Number(row[k] || 0);
+      });
+
+      await saveRow(key, row);
+
+      e.currentTarget.reset();
+      e.currentTarget.querySelectorAll('input[type="date"]').forEach(x => {
+        x.value = today();
+      });
+
+      message("appMsg", "তথ্য সফলভাবে সংরক্ষণ হয়েছে।");
+    } catch (err) {
+      message("appMsg", "Save error: " + err.message);
+    } finally {
+      if (submit) submit.disabled = false;
+    }
+  });
+}
+
+function rowsHTML(items, fn, colspan=8) {
+  if (!items.length) {
+    return `<tr><td colspan="${colspan}">কোনো তথ্য নেই</td></tr>`;
+  }
+  return items.map(x =>
+    "<tr>" + fn(x).map(v => "<td>" + v + "</td>").join("") + "</tr>"
+  ).join("");
+}
+
+function inDates(date, from, to) {
+  return (!from || date >= from) && (!to || date <= to);
+}
+
+function renderCash() {
+  const from = $("cashFrom").value;
+  const to = $("cashTo").value;
+  const search = $("cashSearch").value.toLowerCase();
+
+  const items = data.cash.filter(x =>
+    inDates(x.date, from, to) &&
+    `${x.name||""} ${x.ref||""} ${x.note||""}`.toLowerCase().includes(search)
+  ).sort((a,b) => String(a.date).localeCompare(String(b.date)));
+
+  let balance = 0, ins = 0, outs = 0;
+
+  $("cashRows").innerHTML = rowsHTML(items, x => {
+    const amount = Number(x.amount || 0);
+    if (x.type === "in") {
+      balance += amount;
+      ins += amount;
+    } else {
+      balance -= amount;
+      outs += amount;
+    }
+    return [
+      esc(x.date), esc(x.name || x.note || ""), esc(x.ref || ""),
+      x.type === "in" ? money(amount) : "—",
+      x.type === "out" ? money(amount) : "—",
+      money(balance)
+    ];
+  }, 6);
+
+  $("cashSummary").textContent =
+    `Total In: ${money(ins)} | Total Out: ${money(outs)} | Net: ${money(ins-outs)}`;
+
+  $("cashPrintMeta").textContent =
+    `Period: ${from || "Start"} to ${to || "Today"} | In: ${money(ins)} | Out: ${money(outs)}`;
+}
+
+function renderBank() {
+  const from = $("bankFrom").value;
+  const to = $("bankTo").value;
+  const search = $("bankSearch").value.toLowerCase();
+  const filter = $("bankFilter").value;
+
+  const acct = data.accounts.find(a => a.id === filter);
+  let items = data.bank.filter(x =>
+    inDates(x.date, from, to) &&
+    (filter === "all" ||
+      (x.account_number === acct?.account_number &&
+       x.bank_name === acct?.bank_name)) &&
+    `${x.bank_name||""} ${x.account_name||""} ${x.account_number||""} ${x.note||""} ${x.ref||""}`
+      .toLowerCase().includes(search)
+  ).sort((a,b) => String(a.date).localeCompare(String(b.date)));
+
+  let balance = filter !== "all" && acct ? Number(acct.opening || 0) : 0;
+  let ins = 0, outs = 0;
+
+  $("bankRows").innerHTML = rowsHTML(items, x => {
+    const amount = Number(x.amount || 0);
+    if (x.type === "in") {
+      balance += amount;
+      ins += amount;
+    } else {
+      balance -= amount;
+      outs += amount;
+    }
+    return [
+      esc(x.date), esc(x.bank_name || ""), esc(x.account_number || ""),
+      esc(x.note || ""), esc(x.ref || "—"),
+      x.type === "out" ? money(amount) : "—",
+      x.type === "in" ? money(amount) : "—",
+      money(balance)
+    ];
+  }, 8);
+
+  const old = $("bankFilter").value;
+  $("bankFilter").innerHTML =
+    '<option value="all">All Accounts</option>' +
+    data.accounts.map(a =>
+      `<option value="${esc(a.id)}">${esc(a.bank_name)} — ${esc(a.account_name)} (${esc(a.account_number)})</option>`
+    ).join("");
+
+  if (old === "all" || data.accounts.some(a => a.id === old)) {
+    $("bankFilter").value = old;
+  }
+
+  $("bankSummary").textContent =
+    `Opening: ${money(acct?.opening || 0)} | Credit: ${money(ins)} | Debit: ${money(outs)} | Net Movement: ${money(ins-outs)}`;
+
+  $("bankPrintMeta").textContent =
+    `Account: ${acct ? acct.bank_name + " / " + acct.account_name : "All Accounts"} | Credit: ${money(ins)} | Debit: ${money(outs)}`;
+}
+
+function renderAccounts() {
+  $("accountRows").innerHTML = rowsHTML(data.accounts, a => {
+    const tx = data.bank.filter(x =>
+      x.account_number === a.account_number &&
+      x.bank_name === a.bank_name
+    );
+
+    const balance = Number(a.opening || 0) + tx.reduce((s,x) =>
+      s + (x.type === "in" ? Number(x.amount) : -Number(x.amount)), 0
+    );
+
+    return [
+      esc(a.bank_name), esc(a.account_name), esc(a.account_number),
+      esc(a.routing || ""), esc(a.branch || ""), esc(a.date),
+      money(a.opening), money(balance)
+    ];
+  }, 8);
+}
+
+function renderExpenses() {
+  const from = $("expenseFrom").value;
+  const to = $("expenseTo").value;
+  const search = $("expenseSearch").value.toLowerCase();
+
+  const items = data.expenses.filter(x =>
+    inDates(x.date, from, to) &&
+    `${x.category||""} ${x.note||""}`.toLowerCase().includes(search)
+  ).sort((a,b) => String(a.date).localeCompare(String(b.date)));
+
+  const total = items.reduce((s,x) => s + Number(x.amount || 0), 0);
+
+  $("expenseRows").innerHTML = rowsHTML(items, x => [
+    esc(x.date), esc(x.category), esc(x.note),
+    esc(x.method || ""), money(x.amount)
+  ], 5);
+
+  $("expenseSummary").textContent = `Total Expenses: ${money(total)}`;
+  $("expensePrintMeta").textContent =
+    `Period: ${from || "Start"} to ${to || "Today"} | Total: ${money(total)}`;
+}
+
+function renderStock() {
+  const search = $("stockSearch").value.toLowerCase();
+  const items = data.stock.filter(x =>
+    `${x.name||""} ${x.code||""}`.toLowerCase().includes(search)
+  ).sort((a,b) => String(a.date).localeCompare(String(b.date)));
+
+  $("stockRows").innerHTML = rowsHTML(items, x => [
+    esc(x.date || ""), esc(x.name), esc(x.code || ""),
+    x.type === "out" ? "Stock Out" : "Stock In",
+    esc(x.qty), esc(x.unit || ""), money(x.cost),
+    money(Number(x.qty || 0) * Number(x.cost || 0))
+  ], 8);
+}
+
+function renderLC() {
+  $("lcRows").innerHTML = rowsHTML(data.lc, x => [
+    esc(x.lc_no), esc(x.date), esc(x.supplier),
+    esc(x.bank_name), money(x.amount), esc(x.status)
+  ], 6);
+}
+
+function renderAll() {
+  renderCash();
+  renderBank();
+  renderAccounts();
+  renderExpenses();
+  renderStock();
+  renderLC();
+
+  const cash = data.cash.reduce((s,x) =>
+    s + (x.type === "in" ? Number(x.amount) : -Number(x.amount)), 0
+  );
+
+  const bank = data.accounts.reduce((s,a) => {
+    const tx = data.bank.filter(x =>
+      x.bank_name === a.bank_name &&
+      x.account_number === a.account_number
+    );
+    return s + Number(a.opening || 0) + tx.reduce((z,x) =>
+      z + (x.type === "in" ? Number(x.amount) : -Number(x.amount)), 0
+    );
+  }, 0);
+
+  const expenses = data.expenses.reduce((s,x) => s + Number(x.amount || 0), 0);
+
+  $("dashCash").textContent = money(cash);
+  $("dashBank").textContent = money(bank);
+  $("dashStock").textContent = data.stock.length;
+  $("dashExpense").textContent = money(expenses);
+
+  $("reportSummary").innerHTML =
+    `<p>Cash Balance: <b>${money(cash)}</b></p>
+     <p>Bank Balance: <b>${money(bank)}</b></p>
+     <p>Total Expenses: <b>${money(expenses)}</b></p>
+     <p>Stock records: <b>${data.stock.length}</b></p>
+     <p>LC records: <b>${data.lc.length}</b></p>`;
+}
+
+function downloadFile(filename, content, type) {
+  const url = URL.createObjectURL(new Blob([content], {type}));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportCSV() {
+  const rows = [["Section","Date","Name/Details","Amount"]];
+
+  data.cash.forEach(x => rows.push(["Cash",x.date,x.name || x.note,x.amount]));
+  data.bank.forEach(x => rows.push(["Bank",x.date,
+    `${x.bank_name} ${x.account_name} ${x.note}`,x.amount]));
+  data.expenses.forEach(x => rows.push(["Expense",x.date,
+    `${x.category} ${x.note}`,x.amount]));
+  data.stock.forEach(x => rows.push(["Stock",x.date,x.name,x.qty]));
+  data.lc.forEach(x => rows.push(["LC",x.date,x.lc_no,x.amount]));
+
+  const csv = "\ufeff" + rows.map(r =>
+    r.map(v => '"' + String(v ?? "").replace(/"/g,'""') + '"').join(",")
+  ).join("\r\n");
+
+  downloadFile("lc-management-report.csv", csv, "text/csv;charset=utf-8");
+}
+
+function exportJSON() {
+  const backup = {
+    exported_at: new Date().toISOString(),
+    account: user?.email || "",
+    data
+  };
+  downloadFile(
+    "lc-management-backup.json",
+    JSON.stringify(backup, null, 2),
+    "application/json"
+  );
+}
+
+async function afterLogin() {
+  try {
+    checkSession();
+
+    const {data:p, error} = await sb
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!p) {
+      $("auth").classList.add("hidden");
+      $("app").classList.add("hidden");
+      $("setup").classList.remove("hidden");
+      message("setupMsg", "আপনার profile তৈরি হয়নি। Account setup করুন।");
+      return;
+    }
+
+    if (p.approved === false) {
+      throw new Error("আপনার account এখনো Admin দ্বারা অনুমোদিত হয়নি।");
+    }
+
+    if (p.account_type !== "personal" && p.account_type !== "company") {
+      throw new Error("Profile-এর account_type সঠিক নয়।");
+    }
+
+    personalMode = p.account_type === "personal";
+    workspaceId = personalMode ? null : p.workspace_id;
+
+    if (!personalMode && !workspaceId) {
+      throw new Error("Company workspace তৈরি হয়নি। Database setup প্রয়োজন।");
+    }
+
+    profile = p;
+    $("auth").classList.add("hidden");
+    $("setup").classList.add("hidden");
+    $("app").classList.remove("hidden");
+
+    $("userEmail").textContent = user.email || "";
+    $("workspaceLabel").textContent = personalMode
+      ? "Personal Account"
+      : "Company Account — " + (p.role || "member");
+
+    await reload();
+    message("appMsg", "Database সংযোগ হয়েছে।");
+  } catch (e) {
+    $("setup").classList.add("hidden");
+    $("app").classList.add("hidden");
+    $("auth").classList.remove("hidden");
+    message("authMsg", "Login/Setup error: " + e.message);
+  }
+}
+
+async function boot() {
+  if (!window.supabase) {
+    message("authMsg", "Supabase library load হয়নি। Internet connection পরীক্ষা করুন।");
+    return;
+  }
+
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const {data: sessionData, error} = await sb.auth.getSession();
+  if (error) {
+    message("authMsg", error.message);
+    return;
+  }
+
+  if (sessionData.session) {
+    user = sessionData.session.user;
+    await afterLogin();
+  }
+
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT") {
+      user = null;
+      profile = null;
+      workspaceId = null;
+      showAuth("আপনি Logout করেছেন।");
+    }
+  });
+}
+
+$("authForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (busy || !sb) return;
+
+  setBusy(true);
+  try {
+    const f = new FormData(e.currentTarget);
+    const {data: result, error} = await sb.auth.signInWithPassword({
+      email: String(f.get("email")).trim(),
+      password: String(f.get("password"))
+    });
+
+    if (error) throw error;
+    user = result.user;
+    await afterLogin();
+  } catch (e) {
+    message("authMsg", "Sign In error: " + e.message);
+  } finally {
+    setBusy(false);
+  }
+});
+
+$("signupBtn").addEventListener("click", async () => {
+  if (busy || !sb) return;
+
+  const f = new FormData($("authForm"));
+  const email = String(f.get("email") || "").trim();
+  const password = String(f.get("password") || "");
+
+  if (!email || password.length < 8) {
+    message("authMsg", "সঠিক Email এবং কমপক্ষে ৮ অক্ষরের Password দিন।");
+    return;
+  }
+
+  setBusy(true);
+  try {
+    const {data: result, error} = await sb.auth.signUp({email,password});
+    if (error) throw error;
+
+    if (result.session && result.user) {
+      user = result.user;
+      await afterLogin();
+      message("authMsg", "Signup সম্পন্ন হয়েছে।");
+    } else {
+      message("authMsg",
+        "Signup request সম্পন্ন। Email confirmation প্রয়োজন হতে পারে। Confirm করার পর Sign In করুন।");
+    }
+  } catch (e) {
+    message("authMsg", "Signup error: " + e.message);
+  } finally {
+    setBusy(false);
+  }
+});
+
+$("resetBtn").addEventListener("click", async () => {
+  if (!sb) return;
+
+  const email = $("authForm").elements.email.value.trim();
+  if (!email) {
+    message("authMsg", "আগে নিজের Email লিখুন।");
+    return;
+  }
+
+  try {
+    const {error} = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: location.href
+    });
+    if (error) throw error;
+    message("authMsg", "Reset request গ্রহণ করা হয়েছে। Inbox ও Spam folder দেখুন।");
+  } catch (e) {
+    message("authMsg", "Password reset error: " + e.message);
+  }
+});
+
+$("accountType").addEventListener("change", () => {
+  $("companyWrap").classList.toggle(
+    "hidden", $("accountType").value !== "company"
+  );
+});
+
+$("setupBtn").addEventListener("click", async () => {
+  if (!user) {
+    message("setupMsg", "আগে Sign In করুন।");
+    return;
+  }
+
+  const type = $("accountType").value;
+  const name = $("companyName").value.trim();
+
+  if (type === "company" && !name) {
+    message("setupMsg", "Company name লিখুন।");
+    return;
+  }
+
+  try {
+    message("setupMsg", "Setup চলছে...");
+
+    const {error} = await sb.rpc("create_initial_profile", {
+      p_account_type: type,
+      p_company_name: name || null
+    });
+
+    if (error) throw error;
+
+    await afterLogin();
+  } catch (e) {
+    message("setupMsg",
+      "Setup error: " + e.message +
+      ". Database-এ প্রয়োজনীয় RPC function আছে কি না পরীক্ষা করুন।");
+  }
+});
+
+async function logout() {
+  if (!sb) return;
+  const {error} = await sb.auth.signOut();
+  if (error) {
+    message("appMsg", "Logout error: " + error.message);
+    return;
+  }
+  user = null;
+  profile = null;
+  workspaceId = null;
+  showAuth("Logout সম্পন্ন হয়েছে।");
+}
+
+$("logoutBtn").addEventListener("click", logout);
+$("setupLogout").addEventListener("click", logout);
+
+bindForm("cashForm","cash",["date","type","name","ref","note","amount"]);
+bindForm("bankForm","bank",[
+  "bank_name","account_name","account_number","routing","branch",
+  "date","type","note","ref","amount"
+]);
+bindForm("accountForm","accounts",[
+  "bank_name","account_name","account_number","routing","branch","date","opening"
+]);
+bindForm("expenseForm","expenses",["date","category","note","method","amount"]);
+bindForm("stockForm","stock",["date","name","code","type","qty","unit","cost","note"]);
+bindForm("lcForm","lc",["lc_no","supplier","bank_name","date","amount","status"]);
+
+["cashFrom","cashTo","cashSearch"].forEach(id =>
+  $(id).addEventListener("input", renderCash)
+);
+["bankFrom","bankTo","bankSearch","bankFilter"].forEach(id =>
+  $(id).addEventListener("input", renderBank)
+);
+["expenseFrom","expenseTo","expenseSearch"].forEach(id =>
+  $(id).addEventListener("input", renderExpenses)
+);
+$("stockSearch").addEventListener("input", renderStock);
+
+document.querySelectorAll('input[type="date"][name="date"]').forEach(x => {
+  x.value = today();
+});
+
 boot();
 </script>
 </body>
