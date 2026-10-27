@@ -1,976 +1,254 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LC Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LC Import & Wholesale Management</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f3f6fb;color:#17243a;font-family:Arial,sans-serif}
-header{background:#173e68;color:white;padding:16px}
-header h2{margin:0}
-main{max-width:1150px;margin:auto;padding:12px}
-.card{background:white;border:1px solid #dce4ee;border-radius:10px;padding:14px;margin:12px 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
-label{display:block;font-size:13px;margin:8px 0 4px;color:#475569}
-input,select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:7px}
-button{border:0;border-radius:7px;background:#2563eb;color:white;padding:10px 13px;cursor:pointer}
-button:disabled{opacity:.55}
-.secondary{background:#475569}
-.green{background:#087f5b}
-.red{background:#b42318}
-nav{display:flex;flex-wrap:wrap;gap:6px;background:white;padding:10px;border-radius:9px}
-nav button{background:#e8eff8;color:#173e68}
-nav button.active{background:#173e68;color:white}
-.page{display:none}
-.page.active{display:block}
-.actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
-.tablewrap{width:100%;overflow:auto}
-table{width:100%;min-width:650px;border-collapse:collapse;background:white}
-th,td{border:1px solid #cbd5e1;padding:7px;text-align:left;font-size:12px}
-th{background:#e8eff8}
-.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.stat{background:white;border:1px solid #dce4ee;padding:14px;border-radius:9px}
-.stat strong{display:block;font-size:21px;margin-top:7px}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172033}
+header{background:#12305b;color:white;padding:18px}
+main{max-width:1100px;margin:auto;padding:12px}
+.card{background:white;padding:15px;margin:12px 0;border-radius:10px;border:1px solid #ddd}
+input,select{width:100%;padding:11px;margin:5px 0 12px;border:1px solid #bbb;border-radius:6px}
+button{padding:10px 13px;background:#175cd3;color:white;border:0;border-radius:6px;margin:3px;cursor:pointer}
+nav{display:flex;gap:4px;overflow:auto;background:white;padding:8px;position:sticky;top:0}
+nav button{white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.page{display:none}.page.active{display:block}
+table{border-collapse:collapse;width:100%;min-width:600px}
+th,td{border-bottom:1px solid #ddd;padding:9px;text-align:left;font-size:13px}
+th{background:#eaf0f8}
+.tablewrap{overflow:auto}
+.msg{padding:10px;background:#fff4d6;border-radius:6px;overflow-wrap:anywhere}
 .hidden{display:none!important}
-.muted{color:#64748b;font-size:13px}
-.message{padding:10px;border-radius:7px;background:#fff7ed;margin:8px 0;overflow-wrap:anywhere}
-.printhead{display:none}
-@media print{
- @page{size:A4 landscape;margin:10mm}
- body{background:white;color:black;font-size:10px}
- header,nav,.no-print,form{display:none!important}
- main{padding:0;margin:0;max-width:none}
- .page{display:none!important}
- body[data-print="dashboard"] #dashboard,
- body[data-print="cash"] #cash,
- body[data-print="bank"] #bank,
- body[data-print="expenses"] #expenses,
- body[data-print="stock"] #stock,
- body[data-print="lc"] #lc,
- body[data-print="accounts"] #accounts,
- body[data-print="reports"] #reports{display:block!important}
- .card{border:0;padding:3px;margin:0}
- .printhead{display:block!important;text-align:center;margin-bottom:12px}
- .tablewrap{overflow:visible}
- table{min-width:0;width:100%}
- th,td{font-size:9px;padding:5px;overflow-wrap:anywhere}
-}
+@media print{header,nav,form,button,.noprint{display:none!important}.page{display:none!important}.page.active{display:block!important}}
 </style>
 </head>
 <body>
-<header><h2>LC Management</h2></header>
+<header>
+<h2>LC Import & Wholesale Management</h2>
+Cash Book | Bank | Expenses | Stock | LC | Reports
+</header>
+
 <main>
-
-<section id="auth" class="card">
-<h3>Email Login / Signup</h3>
-<p class="muted">নিজের অনুমোদিত Email ও Password ব্যবহার করুন। Password কমপক্ষে ৮ অক্ষরের হতে হবে।</p>
+<section id="login" class="card">
+<h3>Login / Signup</h3>
+<p>নতুন account তৈরি করতে Signup ব্যবহার করুন।</p>
 <form id="authForm">
+<label>আপনার নাম</label>
+<input id="name" placeholder="আপনার নাম" required>
 <label>Email</label>
-<input name="email" type="email" autocomplete="username" required>
+<input id="email" type="email" required>
 <label>Password</label>
-<input name="password" type="password" minlength="8" autocomplete="current-password" required>
-<div class="actions">
-<button type="submit">Sign In</button>
-<button type="button" class="secondary" id="signupBtn">Sign Up</button>
-<button type="button" class="secondary" id="resetBtn">Reset Password</button>
-</div>
-</form>
-<p id="authMsg" class="message">আপনার account দিয়ে Sign In করুন।</p>
-</section>
-
-<section id="setup" class="card hidden">
-<h3>Account Setup</h3>
-<p class="muted">Personal account নিজের হিসাবের জন্য। Company account ব্যবহারের জন্য অনুমোদিত workspace প্রয়োজন।</p>
+<input id="password" type="password" minlength="8" required>
 <label>Account Type</label>
-<select id="accountType">
+<select id="type">
 <option value="personal">Personal Account</option>
 <option value="company">Company Account</option>
 </select>
-<div id="companyWrap" class="hidden">
+<div id="companyBox" class="hidden">
 <label>Company Name</label>
-<input id="companyName" placeholder="Company name">
+<input id="company" placeholder="কোম্পানির নাম">
 </div>
-<div class="actions">
-<button id="setupBtn">Create / Continue</button>
-<button class="secondary" id="setupLogout">Logout</button>
-</div>
-<p id="setupMsg" class="message"></p>
+<button type="submit">Login</button>
+<button type="button" id="signup">Signup</button>
+<button type="button" id="reset">Reset Password</button>
+</form>
+<div id="loginMsg" class="msg">Supabase configuration বসান।</div>
 </section>
 
-<section id="app" class="hidden">
+<section id="application" class="hidden">
 <div class="card">
-<b id="userEmail"></b>
-<div id="workspaceLabel" class="muted"></div>
-<p id="appMsg" class="message"></p>
-<button id="logoutBtn" class="red">Logout</button>
+<strong id="userLabel"></strong>
+<button id="logout">Logout</button>
+<div id="status" class="msg">Ready</div>
 </div>
 
-<nav class="no-print">
-<button class="active" data-page="dashboard">Dashboard</button>
+<nav class="noprint">
+<button data-page="dashboard">Dashboard</button>
 <button data-page="cash">Cash Book</button>
-<button data-page="bank">Bank Statement</button>
 <button data-page="accounts">Bank Accounts</button>
+<button data-page="bank">Bank Transactions</button>
 <button data-page="expenses">Expenses</button>
 <button data-page="stock">Stock</button>
 <button data-page="lc">LC Records</button>
 <button data-page="reports">Reports</button>
+<button data-page="settings">Settings</button>
 </nav>
 
 <section id="dashboard" class="page active">
-<div class="card">
-<div class="printhead"><h2>LC Management</h2><h3>Dashboard</h3></div>
-<h3>Dashboard</h3>
-<div class="statgrid">
-<div class="stat">Cash Balance<strong id="dashCash">৳0.00</strong></div>
-<div class="stat">Bank Balance<strong id="dashBank">৳0.00</strong></div>
-<div class="stat">Stock Records<strong id="dashStock">0</strong></div>
-<div class="stat">Total Expenses<strong id="dashExpense">৳0.00</strong></div>
+<div class="card"><h3>Dashboard</h3>
+<div class="grid">
+<div class="card">Cash Balance<h3 id="cashTotal">৳0.00</h3></div>
+<div class="card">Bank Balance<h3 id="bankTotal">৳0.00</h3></div>
+<div class="card">Stock Records<h3 id="stockTotal">0</h3></div>
+<div class="card">Expenses<h3 id="expenseTotal">৳0.00</h3></div>
 </div>
-<div class="actions no-print"><button onclick="printReport('dashboard')">Print / Save PDF</button></div>
+<button onclick="window.print()">Print / Save PDF</button>
 </div>
 </section>
 
 <section id="cash" class="page">
-<div class="card no-print">
-<h3>নতুন Cash Transaction</h3>
+<div class="card"><h3>Cash Book</h3>
 <form id="cashForm">
-<div class="grid">
-<div><label>Date</label><input name="date" type="date" required></div>
-<div><label>Type</label><select name="type"><option value="in">Cash In</option><option value="out">Cash Out</option></select></div>
-<div><label>Account Name / Details</label><input name="name" required></div>
-<div><label>Reference</label><input name="ref"></div>
-<div><label>Amount (৳)</label><input name="amount" type="number" min=".01" step=".01" required></div>
-<div><label>Note</label><input name="note"></div>
-</div>
-<div class="actions"><button type="submit">Save Cash Transaction</button></div>
+<label>Date</label><input name="date" type="date" required>
+<label>Type</label><select name="type"><option value="in">জমা</option><option value="out">খরচ</option></select>
+<label>Description</label><input name="name" required>
+<label>Reference</label><input name="ref">
+<label>Amount</label><input name="amount" type="number" min=".01" step=".01" required>
+<label>Note</label><input name="note">
+<button>Save Cash Entry</button>
 </form>
-</div>
-<div class="card">
-<div class="printhead"><h2>LC Management</h2><h3>Cash Book Report</h3><div id="cashPrintMeta"></div></div>
-<h3>Cash Book Report</h3>
-<div class="grid no-print">
-<div><label>From Date</label><input id="cashFrom" type="date"></div>
-<div><label>To Date</label><input id="cashTo" type="date"></div>
-<div><label>Search</label><input id="cashSearch"></div>
-</div>
-<div class="actions no-print"><button onclick="renderCash()">Apply</button><button class="green" onclick="printReport('cash')">Print / Save PDF</button></div>
-<div id="cashSummary"></div>
-<div class="tablewrap"><table><thead><tr><th>Date</th><th>Details</th><th>Reference</th><th>Cash In</th><th>Cash Out</th><th>Balance</th></tr></thead><tbody id="cashRows"></tbody></table></div>
-</div>
-</section>
-
-<section id="bank" class="page">
-<div class="card no-print">
-<h3>Bank Transaction Entry</h3>
-<form id="bankForm">
-<div class="grid">
-<div><label>Bank Name</label><input name="bank_name" required></div>
-<div><label>Account Name</label><input name="account_name" required></div>
-<div><label>Account Number</label><input name="account_number" required></div>
-<div><label>Routing Number</label><input name="routing"></div>
-<div><label>Branch</label><input name="branch"></div>
-<div><label>Date</label><input name="date" type="date" required></div>
-<div><label>Details</label><input name="note" required></div>
-<div><label>Cheque / Reference</label><input name="ref"></div>
-<div><label>Type</label><select name="type"><option value="in">Deposit / Credit</option><option value="out">Withdrawal / Debit</option></select></div>
-<div><label>Amount (৳)</label><input name="amount" type="number" min=".01" step=".01" required></div>
-</div>
-<div class="actions"><button type="submit">Save Bank Transaction</button></div>
-</form>
-</div>
-<div class="card">
-<div class="printhead"><h2>LC Management</h2><h3>Bank Statement</h3><div id="bankPrintMeta"></div></div>
-<h3>Bank Statement</h3>
-<div class="grid no-print">
-<div><label>Bank Account</label><select id="bankFilter"><option value="all">All Accounts</option></select></div>
-<div><label>From Date</label><input id="bankFrom" type="date"></div>
-<div><label>To Date</label><input id="bankTo" type="date"></div>
-<div><label>Search</label><input id="bankSearch"></div>
-</div>
-<div class="actions no-print"><button onclick="renderBank()">Apply</button><button class="green" onclick="printReport('bank')">Print / Save PDF</button></div>
-<div id="bankSummary"></div>
-<div class="tablewrap"><table><thead><tr><th>Date</th><th>Bank</th><th>Account Number</th><th>Details</th><th>Reference</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody id="bankRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Action</th></tr></thead><tbody id="cashRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="accounts" class="page">
-<div class="card no-print">
-<h3>Bank Account Opening Balance</h3>
+<div class="card"><h3>Bank Accounts</h3>
 <form id="accountForm">
-<div class="grid">
-<div><label>Bank Name</label><input name="bank_name" required></div>
-<div><label>Account Name</label><input name="account_name" required></div>
-<div><label>Account Number</label><input name="account_number" required></div>
-<div><label>Routing Number</label><input name="routing"></div>
-<div><label>Branch</label><input name="branch"></div>
-<div><label>Opening Date</label><input name="date" type="date" required></div>
-<div><label>Opening Balance (৳)</label><input name="opening" type="number" step=".01" required value="0"></div>
-</div>
-<div class="actions"><button type="submit">Save Bank Account</button></div>
+<label>Bank Name</label><input name="bank" required>
+<label>Account Holder</label><input name="holder" required>
+<label>Account Number</label><input name="account_number">
+<label>Branch</label><input name="branch">
+<label>Routing</label><input name="routing">
+<label>Opening Balance</label><input name="opening_balance" type="number" step=".01" value="0" required>
+<label>Opening Date</label><input name="opening_date" type="date" required>
+<button>Save Bank Account</button>
 </form>
+<div class="tablewrap"><table><thead><tr><th>Bank</th><th>Holder</th><th>Account</th><th>Balance</th><th>Action</th></tr></thead><tbody id="accountRows"></tbody></table></div>
 </div>
-<div class="card">
-<div class="printhead"><h2>LC Management</h2><h3>Bank Account List</h3></div>
-<h3>Bank Account List</h3>
-<div class="actions no-print"><button class="green" onclick="printReport('accounts')">Print / Save PDF</button></div>
-<div class="tablewrap"><table><thead><tr><th>Bank</th><th>Account Name</th><th>Account Number</th><th>Routing</th><th>Branch</th><th>Date</th><th>Opening Balance</th><th>Current Balance</th></tr></thead><tbody id="accountRows"></tbody></table></div>
+</section>
+
+<section id="bank" class="page">
+<div class="card"><h3>Bank Transactions</h3>
+<form id="bankForm">
+<label>Bank Account</label><select name="account_id" id="bankSelect" required></select>
+<label>Date</label><input name="date" type="date" required>
+<label>Type</label><select name="type"><option value="in">জমা</option><option value="out">উত্তোলন/পেমেন্ট</option></select>
+<label>Description</label><input name="name" required>
+<label>Reference</label><input name="ref">
+<label>Amount</label><input name="amount" type="number" min=".01" step=".01" required>
+<label>Note</label><input name="note">
+<button>Save Bank Transaction</button>
+</form>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Action</th></tr></thead><tbody id="bankRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="expenses" class="page">
-<div class="card no-print">
-<h3>New Expense</h3>
+<div class="card"><h3>Expenses</h3>
 <form id="expenseForm">
-<div class="grid">
-<div><label>Date</label><input name="date" type="date" required></div>
-<div><label>Expense Head</label><input name="category" required></div>
-<div><label>Description</label><input name="note" required></div>
-<div><label>Payment Method</label><select name="method"><option>Cash</option><option>Bank</option><option>Other</option></select></div>
-<div><label>Amount (৳)</label><input name="amount" type="number" min=".01" step=".01" required></div>
-</div>
-<div class="actions"><button type="submit">Save Expense</button></div>
+<label>Date</label><input name="date" type="date" required>
+<label>Expense Name</label><input name="name" required>
+<label>Reference</label><input name="ref">
+<label>Amount</label><input name="amount" type="number" min=".01" step=".01" required>
+<label>Payment Method</label><select name="method"><option>Cash</option><option>Bank</option><option>Other</option></select>
+<label>Note</label><input name="note">
+<button>Save Expense</button>
 </form>
-</div>
-<div class="card">
-<div class="printhead"><h2>LC Management</h2><h3>Expenses Report</h3><div id="expensePrintMeta"></div></div>
-<h3>Expenses Report</h3>
-<div class="grid no-print"><div><label>From Date</label><input id="expenseFrom" type="date"></div><div><label>To Date</label><input id="expenseTo" type="date"></div><div><label>Search</label><input id="expenseSearch"></div></div>
-<div class="actions no-print"><button onclick="renderExpenses()">Apply</button><button class="green" onclick="printReport('expenses')">Print / Save PDF</button></div>
-<div id="expenseSummary"></div>
-<div class="tablewrap"><table><thead><tr><th>Date</th><th>Expense Head</th><th>Description</th><th>Method</th><th>Amount</th></tr></thead><tbody id="expenseRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Name</th><th>Method</th><th>Amount</th><th>Action</th></tr></thead><tbody id="expenseRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="stock" class="page">
-<div class="card no-print">
-<h3>Warehouse Stock Entry</h3>
+<div class="card"><h3>Warehouse Stock</h3>
 <form id="stockForm">
-<div class="grid">
-<div><label>Date</label><input name="date" type="date" required></div>
-<div><label>Product Name</label><input name="name" required></div>
-<div><label>Item Code</label><input name="code"></div>
-<div><label>Type</label><select name="type"><option value="in">Stock In</option><option value="out">Stock Out</option></select></div>
-<div><label>Quantity</label><input name="qty" type="number" min=".001" step=".001" required></div>
-<div><label>Unit</label><input name="unit" required placeholder="pcs/kg/carton"></div>
-<div><label>Unit Cost (৳)</label><input name="cost" type="number" min="0" step=".01" value="0"></div>
-<div><label>Note</label><input name="note"></div>
-</div>
-<div class="actions"><button type="submit">Save Stock</button></div>
+<label>Date</label><input name="date" type="date" required>
+<label>Product</label><input name="name" required>
+<label>Code</label><input name="code">
+<label>Unit / Type</label><input name="type" required>
+<label>Quantity</label><input name="qty" type="number" step=".01" required>
+<label>Unit Price</label><input name="price" type="number" min="0" step=".01" required>
+<label>Note</label><input name="note">
+<button>Save Stock</button>
 </form>
-</div>
-<div class="card">
-<div class="printhead"><h2>LC Management</h2><h3>Warehouse Stock Report</h3></div>
-<h3>Warehouse Stock Report</h3>
-<div class="grid no-print"><div><label>Search Product</label><input id="stockSearch"></div></div>
-<div class="actions no-print"><button onclick="renderStock()">Apply</button><button class="green" onclick="printReport('stock')">Print / Save PDF</button></div>
-<div class="tablewrap"><table><thead><tr><th>Date</th><th>Product</th><th>Code</th><th>Type</th><th>Quantity</th><th>Unit</th><th>Unit Cost</th><th>Total Value</th></tr></thead><tbody id="stockRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Product</th><th>Code</th><th>Unit</th><th>Quantity</th><th>Price</th><th>Action</th></tr></thead><tbody id="stockRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="lc" class="page">
-<div class="card no-print">
-<h3>LC Entry</h3>
+<div class="card"><h3>LC Records</h3>
 <form id="lcForm">
-<div class="grid">
-<div><label>LC Number</label><input name="lc_no" required></div>
-<div><label>Supplier</label><input name="supplier" required></div>
-<div><label>Bank Name</label><input name="bank_name" required></div>
-<div><label>LC Date</label><input name="date" type="date" required></div>
-<div><label>Amount (৳)</label><input name="amount" type="number" min="0" step=".01" required></div>
-<div><label>Status</label><select name="status"><option>Open</option><option>Documents Received</option><option>Paid</option><option>Closed</option></select></div>
-</div>
-<div class="actions"><button type="submit">Save LC Record</button></div>
+<label>LC Number</label><input name="lc_no" required>
+<label>Supplier</label><input name="supplier" required>
+<label>Bank Name</label><input name="bank_name">
+<label>Date</label><input name="date" type="date" required>
+<label>Amount</label><input name="amount" type="number" min="0" step=".01" required>
+<label>Status</label><select name="status"><option>Pending</option><option>Opened</option><option>Shipped</option><option>Completed</option><option>Cancelled</option></select>
+<button>Save LC Record</button>
 </form>
-</div>
-<div class="card">
-<div class="printhead"><h2>LC Management</h2><h3>LC Records</h3></div>
-<h3>LC Records</h3>
-<div class="actions no-print"><button class="green" onclick="printReport('lc')">Print / Save PDF</button></div>
-<div class="tablewrap"><table><thead><tr><th>LC No.</th><th>Date</th><th>Supplier</th><th>Bank</th><th>Amount</th><th>Status</th></tr></thead><tbody id="lcRows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>LC No.</th><th>Supplier</th><th>Bank</th><th>Date</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody id="lcRows"></tbody></table></div>
 </div>
 </section>
 
 <section id="reports" class="page">
-<div class="card">
-<div class="printhead"><h2>LC Management</h2><h3>Summary Report</h3></div>
-<h3>Summary Report</h3>
-<div id="reportSummary"></div>
-<div class="actions no-print"><button onclick="exportCSV()">Export CSV</button><button onclick="exportJSON()">Backup JSON</button><button onclick="printReport('reports')">Print / Save PDF</button></div>
+<div class="card"><h3>Reports</h3><div id="report"></div>
+<button onclick="downloadCSV()">Export CSV</button>
+<button onclick="downloadJSON()">Backup JSON</button>
+<button onclick="window.print()">Print / Save PDF</button>
+</div>
+</section>
+
+<section id="settings" class="page">
+<div class="card"><h3>Settings</h3><div id="settingsInfo"></div>
+<p>এই অ্যাপের ডেটা Supabase Database-এ সংরক্ষিত হয়।</p>
+<button onclick="loadAll()">Reload Data</button>
 </div>
 </section>
 </section>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-"use strict";
-
-/* Browser-এ শুধু publishable key ব্যবহার করবেন।
-   কখনো service_role বা secret key এখানে দেবেন না। */
-const SUPABASE_URL = "https://mhxnecgkwqxjalgacxkt.supabase.co";
-const SUPABASE_KEY = "sb_publishable_0pfcYZYvQm01CYwF2TlzLw_c2m49p_f";
-
-const $ = id => document.getElementById(id);
-const money = n => "৳" + Number(n || 0).toLocaleString("en-BD", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2
-});
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-}[c]));
-const today = () => new Date().toISOString().slice(0,10);
-
-let sb = null;
-let user = null;
-let profile = null;
-let workspaceId = null;
-let personalMode = true;
-let busy = false;
-
-const data = {
-  cash:[], bank:[], accounts:[], expenses:[], stock:[], lc:[]
-};
-
-const tableMap = {
-  cash:"cash_transactions",
-  bank:"bank_transactions",
-  accounts:"bank_accounts",
-  expenses:"expenses",
-  stock:"stock_items",
-  lc:"lc_records"
-};
-
-function message(id, text) {
-  $(id).textContent = text;
+const SUPABASE_URL='PASTE_SUPABASE_PROJECT_URL';
+const SUPABASE_KEY='PASTE_SUPABASE_PUBLIC_ANON_OR_PUBLISHABLE_KEY';
+const $=id=>document.getElementById(id);
+let db,user,profile,workspaceId,personal=true;
+const tables={cash:'cash_transactions',accounts:'bank_accounts',bank:'bank_transactions',expenses:'expenses',stock:'stock_items',lc:'lc_records'};
+const cache={cash:[],accounts:[],bank:[],expenses:[],stock:[],lc:[]};
+const money=n=>'৳'+Number(n||0).toLocaleString('en-BD',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function message(id,text){$(id).textContent=text}
+function show(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id))}
+function scoped(q){return personal?q.eq('owner_id',user.id).is('workspace_id',null):q.eq('workspace_id',workspaceId)}
+async function loadRows(k){const {data,error}=await scoped(db.from(tables[k]).select('*').order('created_at',{ascending:false}));if(error)throw error;cache[k]=data||[]}
+async function loadAll(){for(const k of Object.keys(tables))await loadRows(k);render()}
+function validAccount(){return profile&&profile.active===true&&profile.approved===true&&profile.role!=='pending'&&(personal||workspaceId)}
+async function insert(k,row){if(!validAccount())throw Error('Account inactive বা অসম্পূর্ণ');const {error}=await db.from(tables[k]).insert({...row,owner_id:user.id,workspace_id:personal?null:workspaceId});if(error)throw error;await loadAll();message('status','তথ্য সংরক্ষণ হয়েছে।')}
+async function del(k,id){if(!confirm('এই তথ্য মুছবেন?'))return;try{const {error}=await scoped(db.from(tables[k]).delete().eq('id',id));if(error)throw error;await loadAll()}catch(e){message('status','Delete error: '+e.message)}}
+window.del=del;
+function button(k,id){return `<button onclick="del('${k}','${esc(id)}')">Delete</button>`}
+function fill(id,rows,fn){$(id).innerHTML=rows.length?rows.map(fn).join(''):'<tr><td colspan="8">কোনো তথ্য নেই</td></tr>'}
+function render(){
+fill('cashRows',cache.cash,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.type)}</td><td>${esc(r.name)}</td><td>${money(r.amount)}</td><td>${button('cash',r.id)}</td></tr>`);
+fill('accountRows',cache.accounts,r=>`<tr><td>${esc(r.bank)}</td><td>${esc(r.holder)}</td><td>${esc(r.account_number)}</td><td>${money(r.opening_balance)}</td><td>${button('accounts',r.id)}</td></tr>`);
+$('bankSelect').innerHTML=cache.accounts.map(a=>`<option value="${esc(a.id)}">${esc(a.bank)} - ${esc(a.holder)}</option>`).join('');
+fill('bankRows',cache.bank,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.type)}</td><td>${money(r.amount)}</td><td>${button('bank',r.id)}</td></tr>`);
+fill('expenseRows',cache.expenses,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.method)}</td><td>${money(r.amount)}</td><td>${button('expenses',r.id)}</td></tr>`);
+fill('stockRows',cache.stock,r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.code)}</td><td>${esc(r.type)}</td><td>${esc(r.qty)}</td><td>${money(r.price)}</td><td>${button('stock',r.id)}</td></tr>`);
+fill('lcRows',cache.lc,r=>`<tr><td>${esc(r.lc_no)}</td><td>${esc(r.supplier)}</td><td>${esc(r.bank_name)}</td><td>${esc(r.date)}</td><td>${money(r.amount)}</td><td>${esc(r.status)}</td><td>${button('lc',r.id)}</td></tr>`);
+const cash=cache.cash.reduce((s,r)=>s+(r.type==='in'?1:-1)*Number(r.amount||0),0);
+const bank=cache.accounts.reduce((s,r)=>s+Number(r.opening_balance||0),0)+cache.bank.reduce((s,r)=>s+(r.type==='in'?1:-1)*Number(r.amount||0),0);
+const exp=cache.expenses.reduce((s,r)=>s+Number(r.amount||0),0);
+$('cashTotal').textContent=money(cash);$('bankTotal').textContent=money(bank);$('stockTotal').textContent=cache.stock.length;$('expenseTotal').textContent=money(exp);
+$('report').innerHTML=`Cash Balance: ${money(cash)}<br>Bank Balance: ${money(bank)}<br>Expenses: ${money(exp)}<br>LC Total: ${money(cache.lc.reduce((s,r)=>s+Number(r.amount||0),0))}<br>Stock Records: ${cache.stock.length}`;
 }
-
-function setBusy(value) {
-  busy = value;
-  document.querySelectorAll("#authForm button").forEach(b => b.disabled = value);
-}
-
-function showAuth(text) {
-  $("auth").classList.remove("hidden");
-  $("setup").classList.add("hidden");
-  $("app").classList.add("hidden");
-  if (text) message("authMsg", text);
-}
-
-function showPage(id, btn) {
-  document.querySelectorAll(".page").forEach(p =>
-    p.classList.toggle("active", p.id === id)
-  );
-  document.querySelectorAll("nav button").forEach(b =>
-    b.classList.toggle("active", b.dataset.page === id)
-  );
-}
-
-document.querySelectorAll("nav button[data-page]").forEach(btn => {
-  btn.addEventListener("click", () => showPage(btn.dataset.page, btn));
-});
-
-function printReport(id) {
-  showPage(id);
-  if (id === "cash") renderCash();
-  if (id === "bank") renderBank();
-  if (id === "expenses") renderExpenses();
-  if (id === "stock") renderStock();
-  document.body.dataset.print = id;
-  setTimeout(() => window.print(), 250);
-}
-
-window.addEventListener("afterprint", () => {
-  delete document.body.dataset.print;
-});
-
-function checkSession() {
-  if (!user || !user.id) throw new Error("আপনি Sign In করেননি।");
-}
-
-function filterQuery(query) {
-  checkSession();
-
-  if (personalMode) {
-    return query.eq("owner_id", user.id);
-  }
-
-  if (!workspaceId || typeof workspaceId !== "string") {
-    throw new Error("Company workspace তৈরি হয়নি। Setup প্রয়োজন।");
-  }
-
-  return query.eq("workspace_id", workspaceId);
-}
-
-async function readTable(key) {
-  const table = tableMap[key];
-  let q = sb.from(table).select("*");
-  q = filterQuery(q);
-
-  const {data: rows, error} = await q.order("created_at", {
-    ascending:true
-  });
-
-  if (error) throw error;
-  return rows || [];
-}
-
-async function reload() {
-  checkSession();
-
-  for (const key of Object.keys(tableMap)) {
-    data[key] = await readTable(key);
-  }
-
-  renderAll();
-}
-
-async function saveRow(key, row) {
-  checkSession();
-
-  if (!profile || profile.approved === false) {
-    throw new Error("আপনার account এখনো অনুমোদিত নয়।");
-  }
-
-  if (!personalMode && !workspaceId) {
-    throw new Error("Company workspace পাওয়া যায়নি।");
-  }
-
-  row.owner_id = user.id;
-
-  if (!personalMode) {
-    row.workspace_id = workspaceId;
-  }
-
-  const {error} = await sb.from(tableMap[key]).insert(row);
-  if (error) throw error;
-
-  await reload();
-}
-
-function bindForm(id, key, fields) {
-  $(id).addEventListener("submit", async e => {
-    e.preventDefault();
-    if (!user || busy) return;
-
-    const submit = e.currentTarget.querySelector('button[type="submit"]');
-    if (submit) submit.disabled = true;
-
-    try {
-      const form = new FormData(e.currentTarget);
-      const row = {};
-
-      fields.forEach(k => {
-        const value = form.get(k);
-        if (value !== null) row[k] = value;
-      });
-
-      ["amount","opening","qty","cost"].forEach(k => {
-        if (row[k] !== undefined) row[k] = Number(row[k] || 0);
-      });
-
-      await saveRow(key, row);
-
-      e.currentTarget.reset();
-      e.currentTarget.querySelectorAll('input[type="date"]').forEach(x => {
-        x.value = today();
-      });
-
-      message("appMsg", "তথ্য সফলভাবে সংরক্ষণ হয়েছে।");
-    } catch (err) {
-      message("appMsg", "Save error: " + err.message);
-    } finally {
-      if (submit) submit.disabled = false;
-    }
-  });
-}
-
-function rowsHTML(items, fn, colspan=8) {
-  if (!items.length) {
-    return `<tr><td colspan="${colspan}">কোনো তথ্য নেই</td></tr>`;
-  }
-  return items.map(x =>
-    "<tr>" + fn(x).map(v => "<td>" + v + "</td>").join("") + "</tr>"
-  ).join("");
-}
-
-function inDates(date, from, to) {
-  return (!from || date >= from) && (!to || date <= to);
-}
-
-function renderCash() {
-  const from = $("cashFrom").value;
-  const to = $("cashTo").value;
-  const search = $("cashSearch").value.toLowerCase();
-
-  const items = data.cash.filter(x =>
-    inDates(x.date, from, to) &&
-    `${x.name||""} ${x.ref||""} ${x.note||""}`.toLowerCase().includes(search)
-  ).sort((a,b) => String(a.date).localeCompare(String(b.date)));
-
-  let balance = 0, ins = 0, outs = 0;
-
-  $("cashRows").innerHTML = rowsHTML(items, x => {
-    const amount = Number(x.amount || 0);
-    if (x.type === "in") {
-      balance += amount;
-      ins += amount;
-    } else {
-      balance -= amount;
-      outs += amount;
-    }
-    return [
-      esc(x.date), esc(x.name || x.note || ""), esc(x.ref || ""),
-      x.type === "in" ? money(amount) : "—",
-      x.type === "out" ? money(amount) : "—",
-      money(balance)
-    ];
-  }, 6);
-
-  $("cashSummary").textContent =
-    `Total In: ${money(ins)} | Total Out: ${money(outs)} | Net: ${money(ins-outs)}`;
-
-  $("cashPrintMeta").textContent =
-    `Period: ${from || "Start"} to ${to || "Today"} | In: ${money(ins)} | Out: ${money(outs)}`;
-}
-
-function renderBank() {
-  const from = $("bankFrom").value;
-  const to = $("bankTo").value;
-  const search = $("bankSearch").value.toLowerCase();
-  const filter = $("bankFilter").value;
-
-  const acct = data.accounts.find(a => a.id === filter);
-  let items = data.bank.filter(x =>
-    inDates(x.date, from, to) &&
-    (filter === "all" ||
-      (x.account_number === acct?.account_number &&
-       x.bank_name === acct?.bank_name)) &&
-    `${x.bank_name||""} ${x.account_name||""} ${x.account_number||""} ${x.note||""} ${x.ref||""}`
-      .toLowerCase().includes(search)
-  ).sort((a,b) => String(a.date).localeCompare(String(b.date)));
-
-  let balance = filter !== "all" && acct ? Number(acct.opening || 0) : 0;
-  let ins = 0, outs = 0;
-
-  $("bankRows").innerHTML = rowsHTML(items, x => {
-    const amount = Number(x.amount || 0);
-    if (x.type === "in") {
-      balance += amount;
-      ins += amount;
-    } else {
-      balance -= amount;
-      outs += amount;
-    }
-    return [
-      esc(x.date), esc(x.bank_name || ""), esc(x.account_number || ""),
-      esc(x.note || ""), esc(x.ref || "—"),
-      x.type === "out" ? money(amount) : "—",
-      x.type === "in" ? money(amount) : "—",
-      money(balance)
-    ];
-  }, 8);
-
-  const old = $("bankFilter").value;
-  $("bankFilter").innerHTML =
-    '<option value="all">All Accounts</option>' +
-    data.accounts.map(a =>
-      `<option value="${esc(a.id)}">${esc(a.bank_name)} — ${esc(a.account_name)} (${esc(a.account_number)})</option>`
-    ).join("");
-
-  if (old === "all" || data.accounts.some(a => a.id === old)) {
-    $("bankFilter").value = old;
-  }
-
-  $("bankSummary").textContent =
-    `Opening: ${money(acct?.opening || 0)} | Credit: ${money(ins)} | Debit: ${money(outs)} | Net Movement: ${money(ins-outs)}`;
-
-  $("bankPrintMeta").textContent =
-    `Account: ${acct ? acct.bank_name + " / " + acct.account_name : "All Accounts"} | Credit: ${money(ins)} | Debit: ${money(outs)}`;
-}
-
-function renderAccounts() {
-  $("accountRows").innerHTML = rowsHTML(data.accounts, a => {
-    const tx = data.bank.filter(x =>
-      x.account_number === a.account_number &&
-      x.bank_name === a.bank_name
-    );
-
-    const balance = Number(a.opening || 0) + tx.reduce((s,x) =>
-      s + (x.type === "in" ? Number(x.amount) : -Number(x.amount)), 0
-    );
-
-    return [
-      esc(a.bank_name), esc(a.account_name), esc(a.account_number),
-      esc(a.routing || ""), esc(a.branch || ""), esc(a.date),
-      money(a.opening), money(balance)
-    ];
-  }, 8);
-}
-
-function renderExpenses() {
-  const from = $("expenseFrom").value;
-  const to = $("expenseTo").value;
-  const search = $("expenseSearch").value.toLowerCase();
-
-  const items = data.expenses.filter(x =>
-    inDates(x.date, from, to) &&
-    `${x.category||""} ${x.note||""}`.toLowerCase().includes(search)
-  ).sort((a,b) => String(a.date).localeCompare(String(b.date)));
-
-  const total = items.reduce((s,x) => s + Number(x.amount || 0), 0);
-
-  $("expenseRows").innerHTML = rowsHTML(items, x => [
-    esc(x.date), esc(x.category), esc(x.note),
-    esc(x.method || ""), money(x.amount)
-  ], 5);
-
-  $("expenseSummary").textContent = `Total Expenses: ${money(total)}`;
-  $("expensePrintMeta").textContent =
-    `Period: ${from || "Start"} to ${to || "Today"} | Total: ${money(total)}`;
-}
-
-function renderStock() {
-  const search = $("stockSearch").value.toLowerCase();
-  const items = data.stock.filter(x =>
-    `${x.name||""} ${x.code||""}`.toLowerCase().includes(search)
-  ).sort((a,b) => String(a.date).localeCompare(String(b.date)));
-
-  $("stockRows").innerHTML = rowsHTML(items, x => [
-    esc(x.date || ""), esc(x.name), esc(x.code || ""),
-    x.type === "out" ? "Stock Out" : "Stock In",
-    esc(x.qty), esc(x.unit || ""), money(x.cost),
-    money(Number(x.qty || 0) * Number(x.cost || 0))
-  ], 8);
-}
-
-function renderLC() {
-  $("lcRows").innerHTML = rowsHTML(data.lc, x => [
-    esc(x.lc_no), esc(x.date), esc(x.supplier),
-    esc(x.bank_name), money(x.amount), esc(x.status)
-  ], 6);
-}
-
-function renderAll() {
-  renderCash();
-  renderBank();
-  renderAccounts();
-  renderExpenses();
-  renderStock();
-  renderLC();
-
-  const cash = data.cash.reduce((s,x) =>
-    s + (x.type === "in" ? Number(x.amount) : -Number(x.amount)), 0
-  );
-
-  const bank = data.accounts.reduce((s,a) => {
-    const tx = data.bank.filter(x =>
-      x.bank_name === a.bank_name &&
-      x.account_number === a.account_number
-    );
-    return s + Number(a.opening || 0) + tx.reduce((z,x) =>
-      z + (x.type === "in" ? Number(x.amount) : -Number(x.amount)), 0
-    );
-  }, 0);
-
-  const expenses = data.expenses.reduce((s,x) => s + Number(x.amount || 0), 0);
-
-  $("dashCash").textContent = money(cash);
-  $("dashBank").textContent = money(bank);
-  $("dashStock").textContent = data.stock.length;
-  $("dashExpense").textContent = money(expenses);
-
-  $("reportSummary").innerHTML =
-    `<p>Cash Balance: <b>${money(cash)}</b></p>
-     <p>Bank Balance: <b>${money(bank)}</b></p>
-     <p>Total Expenses: <b>${money(expenses)}</b></p>
-     <p>Stock records: <b>${data.stock.length}</b></p>
-     <p>LC records: <b>${data.lc.length}</b></p>`;
-}
-
-function downloadFile(filename, content, type) {
-  const url = URL.createObjectURL(new Blob([content], {type}));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function exportCSV() {
-  const rows = [["Section","Date","Name/Details","Amount"]];
-
-  data.cash.forEach(x => rows.push(["Cash",x.date,x.name || x.note,x.amount]));
-  data.bank.forEach(x => rows.push(["Bank",x.date,
-    `${x.bank_name} ${x.account_name} ${x.note}`,x.amount]));
-  data.expenses.forEach(x => rows.push(["Expense",x.date,
-    `${x.category} ${x.note}`,x.amount]));
-  data.stock.forEach(x => rows.push(["Stock",x.date,x.name,x.qty]));
-  data.lc.forEach(x => rows.push(["LC",x.date,x.lc_no,x.amount]));
-
-  const csv = "\ufeff" + rows.map(r =>
-    r.map(v => '"' + String(v ?? "").replace(/"/g,'""') + '"').join(",")
-  ).join("\r\n");
-
-  downloadFile("lc-management-report.csv", csv, "text/csv;charset=utf-8");
-}
-
-function exportJSON() {
-  const backup = {
-    exported_at: new Date().toISOString(),
-    account: user?.email || "",
-    data
-  };
-  downloadFile(
-    "lc-management-backup.json",
-    JSON.stringify(backup, null, 2),
-    "application/json"
-  );
-}
-
-async function afterLogin() {
-  try {
-    checkSession();
-
-    const {data:p, error} = await sb
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (error) throw error;
-
-    if (!p) {
-      $("auth").classList.add("hidden");
-      $("app").classList.add("hidden");
-      $("setup").classList.remove("hidden");
-      message("setupMsg", "আপনার profile তৈরি হয়নি। Account setup করুন।");
-      return;
-    }
-
-    if (p.approved === false) {
-      throw new Error("আপনার account এখনো Admin দ্বারা অনুমোদিত হয়নি।");
-    }
-
-    if (p.account_type !== "personal" && p.account_type !== "company") {
-      throw new Error("Profile-এর account_type সঠিক নয়।");
-    }
-
-    personalMode = p.account_type === "personal";
-    workspaceId = personalMode ? null : p.workspace_id;
-
-    if (!personalMode && !workspaceId) {
-      throw new Error("Company workspace তৈরি হয়নি। Database setup প্রয়োজন।");
-    }
-
-    profile = p;
-    $("auth").classList.add("hidden");
-    $("setup").classList.add("hidden");
-    $("app").classList.remove("hidden");
-
-    $("userEmail").textContent = user.email || "";
-    $("workspaceLabel").textContent = personalMode
-      ? "Personal Account"
-      : "Company Account — " + (p.role || "member");
-
-    await reload();
-    message("appMsg", "Database সংযোগ হয়েছে।");
-  } catch (e) {
-    $("setup").classList.add("hidden");
-    $("app").classList.add("hidden");
-    $("auth").classList.remove("hidden");
-    message("authMsg", "Login/Setup error: " + e.message);
-  }
-}
-
-async function boot() {
-  if (!window.supabase) {
-    message("authMsg", "Supabase library load হয়নি। Internet connection পরীক্ষা করুন।");
-    return;
-  }
-
-  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  const {data: sessionData, error} = await sb.auth.getSession();
-  if (error) {
-    message("authMsg", error.message);
-    return;
-  }
-
-  if (sessionData.session) {
-    user = sessionData.session.user;
-    await afterLogin();
-  }
-
-  sb.auth.onAuthStateChange((event, session) => {
-    if (event === "SIGNED_OUT") {
-      user = null;
-      profile = null;
-      workspaceId = null;
-      showAuth("আপনি Logout করেছেন।");
-    }
-  });
-}
-
-$("authForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  if (busy || !sb) return;
-
-  setBusy(true);
-  try {
-    const f = new FormData(e.currentTarget);
-    const {data: result, error} = await sb.auth.signInWithPassword({
-      email: String(f.get("email")).trim(),
-      password: String(f.get("password"))
-    });
-
-    if (error) throw error;
-    user = result.user;
-    await afterLogin();
-  } catch (e) {
-    message("authMsg", "Sign In error: " + e.message);
-  } finally {
-    setBusy(false);
-  }
-});
-
-$("signupBtn").addEventListener("click", async () => {
-  if (busy || !sb) return;
-
-  const f = new FormData($("authForm"));
-  const email = String(f.get("email") || "").trim();
-  const password = String(f.get("password") || "");
-
-  if (!email || password.length < 8) {
-    message("authMsg", "সঠিক Email এবং কমপক্ষে ৮ অক্ষরের Password দিন।");
-    return;
-  }
-
-  setBusy(true);
-  try {
-    const {data: result, error} = await sb.auth.signUp({email,password});
-    if (error) throw error;
-
-    if (result.session && result.user) {
-      user = result.user;
-      await afterLogin();
-      message("authMsg", "Signup সম্পন্ন হয়েছে।");
-    } else {
-      message("authMsg",
-        "Signup request সম্পন্ন। Email confirmation প্রয়োজন হতে পারে। Confirm করার পর Sign In করুন।");
-    }
-  } catch (e) {
-    message("authMsg", "Signup error: " + e.message);
-  } finally {
-    setBusy(false);
-  }
-});
-
-$("resetBtn").addEventListener("click", async () => {
-  if (!sb) return;
-
-  const email = $("authForm").elements.email.value.trim();
-  if (!email) {
-    message("authMsg", "আগে নিজের Email লিখুন।");
-    return;
-  }
-
-  try {
-    const {error} = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: location.href
-    });
-    if (error) throw error;
-    message("authMsg", "Reset request গ্রহণ করা হয়েছে। Inbox ও Spam folder দেখুন।");
-  } catch (e) {
-    message("authMsg", "Password reset error: " + e.message);
-  }
-});
-
-$("accountType").addEventListener("change", () => {
-  $("companyWrap").classList.toggle(
-    "hidden", $("accountType").value !== "company"
-  );
-});
-
-$("setupBtn").addEventListener("click", async () => {
-  if (!user) {
-    message("setupMsg", "আগে Sign In করুন।");
-    return;
-  }
-
-  const type = $("accountType").value;
-  const name = $("companyName").value.trim();
-
-  if (type === "company" && !name) {
-    message("setupMsg", "Company name লিখুন।");
-    return;
-  }
-
-  try {
-    message("setupMsg", "Setup চলছে...");
-
-    const {error} = await sb.rpc("create_initial_profile", {
-      p_account_type: type,
-      p_company_name: name || null
-    });
-
-    if (error) throw error;
-
-    await afterLogin();
-  } catch (e) {
-    message("setupMsg",
-      "Setup error: " + e.message +
-      ". Database-এ প্রয়োজনীয় RPC function আছে কি না পরীক্ষা করুন।");
-  }
-});
-
-async function logout() {
-  if (!sb) return;
-  const {error} = await sb.auth.signOut();
-  if (error) {
-    message("appMsg", "Logout error: " + error.message);
-    return;
-  }
-  user = null;
-  profile = null;
-  workspaceId = null;
-  showAuth("Logout সম্পন্ন হয়েছে।");
-}
-
-$("logoutBtn").addEventListener("click", logout);
-$("setupLogout").addEventListener("click", logout);
-
-bindForm("cashForm","cash",["date","type","name","ref","note","amount"]);
-bindForm("bankForm","bank",[
-  "bank_name","account_name","account_number","routing","branch",
-  "date","type","note","ref","amount"
-]);
-bindForm("accountForm","accounts",[
-  "bank_name","account_name","account_number","routing","branch","date","opening"
-]);
-bindForm("expenseForm","expenses",["date","category","note","method","amount"]);
-bindForm("stockForm","stock",["date","name","code","type","qty","unit","cost","note"]);
-bindForm("lcForm","lc",["lc_no","supplier","bank_name","date","amount","status"]);
-
-["cashFrom","cashTo","cashSearch"].forEach(id =>
-  $(id).addEventListener("input", renderCash)
-);
-["bankFrom","bankTo","bankSearch","bankFilter"].forEach(id =>
-  $(id).addEventListener("input", renderBank)
-);
-["expenseFrom","expenseTo","expenseSearch"].forEach(id =>
-  $(id).addEventListener("input", renderExpenses)
-);
-$("stockSearch").addEventListener("input", renderStock);
-
-document.querySelectorAll('input[type="date"][name="date"]').forEach(x => {
-  x.value = today();
-});
-
-boot();
+function formObject(form,numbers=[]){const o={};for(const [k,v] of new FormData(form))o[k]=numbers.includes(k)?Number(v||0):(v===''?null:v);return o}
+function bind(form,k,numbers=[]){$(form).onsubmit=async e=>{e.preventDefault();try{await insert(k,formObject(e.currentTarget,numbers));e.currentTarget.reset()}catch(x){message('status','Save error: '+x.message)}}}
+function downloadFile(name,data,type){const a=document.createElement('a');const u=URL.createObjectURL(new Blob([data],{type}));a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
+function downloadCSV(){let lines=[];for(const [k,rows] of Object.entries(cache)){lines.push('SECTION,'+k);if(rows.length){const keys=Object.keys(rows[0]);lines.push(keys.join(','));rows.forEach(r=>lines.push(keys.map(x=>'"'+String(r[x]??'').replace(/"/g,'""')+'"').join(',')))}}downloadFile('lc-report.csv','\ufeff'+lines.join('\r\n'),'text/csv;charset=utf-8')}
+function downloadJSON(){downloadFile('lc-backup.json',JSON.stringify({exported_at:new Date().toISOString(),data:cache},null,2),'application/json')}
+$('type').onchange=()=>$('companyBox').classList.toggle('hidden',$('type').value!=='company');
+$('authForm').onsubmit=async e=>{e.preventDefault();try{const {data,error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;user=data.user;await afterLogin()}catch(x){message('loginMsg','Login error: '+x.message)}};
+$('signup').onclick=async()=>{if(!db)return message('loginMsg','Supabase configuration বসান');if(!$('authForm').reportValidity())return;const t=$('type').value,c=$('company').value.trim();if(t==='company'&&!c)return message('loginMsg','Company Name দিন');try{const {error}=await db.auth.signUp({email:$('email').value.trim(),password:$('password').value,options:{data:{display_name:$('name').value.trim(),account_type:t,company_name:c}}});if(error)throw error;message('loginMsg','Signup সফল। Email confirmation চালু থাকলে email verify করে Login করুন।')}catch(x){message('loginMsg','Signup error: '+x.message)}};
+$('reset').onclick=async()=>{const e=$('email').value.trim();if(!e)return message('loginMsg','Email দিন');try{const {error}=await db.auth.resetPasswordForEmail(e,{redirectTo:location.href});if(error)throw error;message('loginMsg','Password reset email পাঠানো হয়েছে')}catch(x){message('loginMsg',x.message)}};
+async function afterLogin(){const {data:p,error}=await db.from('profiles').select('*').eq('id',user.id).maybeSingle();if(error)throw error;if(!p)throw Error('Profile পাওয়া যায়নি। SQL trigger পরীক্ষা করুন।');profile=p;personal=p.account_type==='personal';workspaceId=p.workspace_id;if(!p.active||!p.approved||p.role==='pending')throw Error('Account active নয় অথবা profile অনুমোদিত নয়');if(p.account_type==='company'&&!workspaceId)throw Error('Company workspace পাওয়া যায়নি');$('login').classList.add('hidden');$('application').classList.remove('hidden');$('userLabel').textContent=(p.display_name||p.email)+' ('+p.account_type+')';$('settingsInfo').textContent='Email: '+p.email+' | Type: '+p.account_type+' | Workspace: '+(workspaceId||'Personal');show('dashboard');await loadAll()}
+$('logout').onclick=async()=>{await db.auth.signOut();location.reload()};
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.page));
+bind('cashForm','cash',['amount']);bind('accountForm','accounts',['opening_balance']);bind('bankForm','bank',['amount']);bind('expenseForm','expenses',['amount']);bind('stockForm','stock',['qty','price']);bind('lcForm','lc',['amount']);
+async function start(){if(SUPABASE_URL.startsWith('PASTE_')||SUPABASE_KEY.startsWith('PASTE_'))return message('loginMsg','নিচের কোডে Supabase URL এবং public key বসান');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const {data,error}=await db.auth.getSession();if(error)throw error;if(data.session){user=data.session.user;await afterLogin()}else message('loginMsg','Login করুন অথবা Signup করুন');db.auth.onAuthStateChange((_e,s)=>setTimeout(async()=>{if(!s){$('application').classList.add('hidden');$('login').classList.remove('hidden');return}user=s.user;try{await afterLogin()}catch(x){message('loginMsg',x.message)}},0))}
+start().catch(e=>message('loginMsg','Connection error: '+e.message));
 </script>
 </body>
 </html>
