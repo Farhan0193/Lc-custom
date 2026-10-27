@@ -24,12 +24,18 @@ th{background:#eaf0f8}
 .msg{padding:10px;background:#fff4d6;border-radius:6px;overflow-wrap:anywhere}
 .hidden{display:none!important}
 @media print{header,nav,form,button,.noprint{display:none!important}.page{display:none!important}.page.active{display:block!important}}
+<nav class="noprint">
+<div class="card noprint">
+  <button type="button" onclick="window.print()">
+    🖨️ Print / Save PDF
+  </button>
+</div>
+<button data-page="dashboard">Dashboard</button>
 </style>
 </head>
 <body>
 <header>
 <h2>LC Import & Wholesale Management</h2>
-Cash Book | Bank | Expenses | Stock | LC | Reports
 </header>
 
 <main>
@@ -73,8 +79,6 @@ Cash Book | Bank | Expenses | Stock | LC | Reports
 <button data-page="bank">Bank Transactions</button>
 <button data-page="expenses">Expenses</button>
 <button data-page="stock">Stock</button>
-<button data-page="lc">LC Records</button>
-<button data-page="reports">Reports</button>
 <button data-page="settings">Settings</button>
 </nav>
 
