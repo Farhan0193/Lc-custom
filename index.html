@@ -1,242 +1,519 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lc Management</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LC Management</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f2f5fa;color:#17243a;font-family:Arial,sans-serif}
-header{background:#173e68;color:white;padding:18px}
-header h2{margin:0 0 5px}
-main{max-width:1100px;margin:auto;padding:12px}
-nav{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
-button{border:0;border-radius:7px;padding:10px 13px;background:#2563eb;color:white;cursor:pointer}
-nav button{background:white;color:#173e68;border:1px solid #d5dfec}
-nav button.active{background:#173e68;color:white}
-.card{background:white;border:1px solid #dce4ee;border-radius:12px;padding:14px;margin-bottom:13px}
-h3{margin-top:0}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-label{font-size:12px;color:#52647b;display:block;margin-bottom:4px}
-input,select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:7px;background:white}
-.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
-.secondary{background:#e5edf8;color:#173e68}
+body{margin:0;background:#f3f6fb;color:#17243a;font-family:Arial,sans-serif}
+header{background:#173e68;color:white;padding:16px}
+header h2{margin:0}
+main{max-width:1150px;margin:auto;padding:12px}
+.card{background:white;border:1px solid #dce4ee;border-radius:10px;padding:14px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+label{display:block;font-size:13px;margin:8px 0 4px;color:#475569}
+input,select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:7px}
+button{border:0;border-radius:7px;background:#2563eb;color:white;padding:10px 13px;cursor:pointer}
+.secondary{background:#475569}
 .green{background:#087f5b}
-.page{display:none}.page.active{display:block}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.stat{padding:13px;border:1px solid #dce4ee;border-radius:10px;background:white}
-.stat strong{display:block;font-size:19px;margin-top:6px;overflow-wrap:anywhere}
-.tablewrap{overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:650px;background:white}
-th,td{padding:8px;border:1px solid #dce4ee;text-align:left;font-size:12px}
+.red{background:#b42318}
+nav{display:flex;flex-wrap:wrap;gap:6px;background:white;padding:10px;border-radius:9px}
+nav button{background:#e8eff8;color:#173e68}
+nav button.active{background:#173e68;color:white}
+.page{display:none}
+.page.active{display:block}
+.actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.tablewrap{width:100%;overflow:auto}
+table{width:100%;min-width:650px;border-collapse:collapse;background:white}
+th,td{border:1px solid #cbd5e1;padding:7px;text-align:left;font-size:12px}
 th{background:#e8eff8}
-.num{text-align:right}
-.note{font-size:12px;color:#64748b;line-height:1.6}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:white;border:1px solid #dce4ee;padding:14px;border-radius:9px}
+.stat strong{display:block;font-size:21px;margin-top:7px}
 .hidden{display:none!important}
-@media(max-width:650px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}header h2{font-size:20px}}
-@media(max-width:420px){.grid{grid-template-columns:1fr}}
-.printTitle,.printMeta{display:none}
+.muted{color:#64748b;font-size:13px}
+.message{padding:10px;border-radius:7px;background:#fff7ed;margin:8px 0;overflow-wrap:anywhere}
+.printhead{display:none}
 @media print{
- @page{size:A4;margin:12mm}
+ @page{size:A4 landscape;margin:10mm}
  body{background:white;color:black;font-size:10px}
- header,nav,.noPrint,.formCard,#dashboard{display:none!important}
+ header,nav,.no-print,form,.actions,.deletecol,#auth,#setup{display:none!important}
  main{padding:0;margin:0;max-width:none}
  .page{display:none!important}
+ body[data-print="dashboard"] #dashboard,
  body[data-print="cash"] #cash,
  body[data-print="bank"] #bank,
- body[data-print="stock"] #stock,
  body[data-print="expenses"] #expenses,
- body[data-print="accounts"] #accounts{display:block!important}
- .card{border:0;padding:0;margin:0}
- .printTitle,.printMeta{display:block!important}
- .printTitle{font-size:18px;font-weight:bold;margin-bottom:6px}
- .printMeta{margin-bottom:12px}
+ body[data-print="stock"] #stock,
+ body[data-print="lc"] #lc,
+ body[data-print="accounts"] #accounts,
+ body[data-print="reports"] #reports{display:block!important}
+ .card{border:0;padding:3px;margin:0}
+ .printhead{display:block!important;text-align:center;margin-bottom:12px}
  .tablewrap{overflow:visible}
- table{min-width:0;width:100%}
- th,td{font-size:9px;padding:5px;color:black;white-space:normal}
+ table{min-width:0;width:100%;table-layout:auto}
+ th,td{font-size:9px;padding:5px;overflow-wrap:anywhere}
 }
 </style>
 </head>
 <body>
-<header>
- <h2>Lc Management-Accounts Manager</h2>
-</header>
+<header><h2>LC Management</h2></header>
 <main>
-<nav class="noPrint">
- <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
- <button onclick="showPage('cash',this)">Cash Book</button>
- <button onclick="showPage('bank',this)">Bank Statement</button>
- <button onclick="showPage('stock',this)">Stock</button>
- <button onclick="showPage('expenses',this)">Expenses</button>
- <button onclick="showPage('accounts',this)">Bank Accounts</button>
+
+<section id="auth" class="card">
+<h3>Email Login / Signup</h3>
+<p class="muted">আপনার অনুমোদিত Email ও Password ব্যবহার করুন। Password কমপক্ষে ৮ অক্ষরের হতে হবে।</p>
+<form id="authForm">
+<label>Email</label>
+<input name="email" type="email" autocomplete="email" required>
+<label>Password</label>
+<input name="password" type="password" minlength="8" autocomplete="current-password" required>
+<div class="actions">
+<button type="submit">Sign In</button>
+<button type="button" class="secondary" id="signupBtn">Sign Up</button>
+<button type="button" class="secondary" id="resetBtn">Reset Password</button>
+</div>
+</form>
+<p id="authMsg" class="message"></p>
+</section>
+
+<section id="setup" class="card hidden">
+<h3>Account Setup</h3>
+<p>Personal account হলে শুধু নিজের হিসাব ব্যবহার করবেন। Company account তৈরি ও Admin approval-এর জন্য Supabase SQL সেটআপ প্রয়োজন।</p>
+<label>Account Type</label>
+<select id="accountType">
+<option value="personal">Personal</option>
+<option value="company">Company</option>
+</select>
+<div id="companyWrap" class="hidden">
+<label>Company Name</label>
+<input id="companyName" placeholder="Company name">
+</div>
+<div class="actions">
+<button id="setupBtn">Continue</button>
+<button class="secondary" id="setupLogout">Logout</button>
+</div>
+<p id="setupMsg" class="message"></p>
+</section>
+
+<section id="app" class="hidden">
+<div class="card">
+<b id="userEmail"></b>
+<div id="workspaceLabel" class="muted"></div>
+<p id="appMsg" class="message">Supabase connection status</p>
+<button id="logoutBtn" class="red">Logout</button>
+</div>
+
+<nav class="no-print">
+<button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
+<button onclick="showPage('cash',this)">Cash Book</button>
+<button onclick="showPage('bank',this)">Bank Statement</button>
+<button onclick="showPage('accounts',this)">Bank Accounts</button>
+<button onclick="showPage('expenses',this)">Expenses</button>
+<button onclick="showPage('stock',this)">Stock</button>
+<button onclick="showPage('lc',this)">LC Records</button>
+<button onclick="showPage('reports',this)">Reports</button>
 </nav>
 
 <section id="dashboard" class="page active">
- <div class="stats">
-  <div class="stat">Cash Balance<strong id="dashCash">৳0.00</strong></div>
-  <div class="stat">Bank Balance<strong id="dashBank">৳0.00</strong></div>
-  <div class="stat">Stock Quantity<strong id="dashStock">0</strong></div>
-  <div class="stat">Total Expenses<strong id="dashExpenses">৳0.00</strong></div>
- </div>
- <div class="card">
-  <h3>ব্যবহার করার নিয়ম</h3>
-  <ol>
-   <li>প্রথমে Bank Accounts থেকে ব্যাংকের তথ্য যোগ করুন।</li>
-   <li>Cash Book-এ নগদ জমা ও উত্তোলন যোগ করুন।</li>
-   <li>Bank Statement-এ নির্দিষ্ট ব্যাংক নির্বাচন করে লেনদেন যোগ করুন।</li>
-   <li>Stock-এ পণ্যের প্রবেশ ও বের হওয়ার হিসাব রাখুন।</li>
-   <li>Expenses-এ খরচ যোগ করুন।</li>
-   <li>প্রতিটি রিপোর্টে তারিখ বেছে Print চাপুন।</li>
-  </ol>
-  <p class="note">এই সংস্করণে ডেটা আপনার বর্তমান ব্রাউজারে সেভ হবে। ব্রাউজারের ডেটা মুছে ফেললে হিসাব হারাতে পারেন। নিয়মিত Backup নিন। এটি এখনো অনলাইন ডেটাবেস বা বহু ব্যবহারকারীর সিস্টেম নয়।</p>
-  <div class="actions noPrint">
-   <button onclick="backup()">Backup Download</button>
-   <button class="secondary" onclick="document.getElementById('restoreFile').click()">Restore Backup</button>
-   <input id="restoreFile" type="file" accept=".json" hidden onchange="restore(event)">
-  </div>
- </div>
- <div class="card"><h3>সাম্প্রতিক Cash Transactions</h3><div id="recent"></div></div>
+<div class="card">
+<div class="printhead"><h2>LC Management</h2><h3>Dashboard</h3></div>
+<h3>Dashboard</h3>
+<div class="statgrid">
+<div class="stat">Cash Balance<strong id="dashCash">৳0.00</strong></div>
+<div class="stat">Bank Balance<strong id="dashBank">৳0.00</strong></div>
+<div class="stat">Stock Items<strong id="dashStock">0</strong></div>
+<div class="stat">Total Expenses<strong id="dashExpense">৳0.00</strong></div>
+</div>
+<div class="actions no-print"><button onclick="printReport('dashboard')">Print / Save PDF</button></div>
+</div>
 </section>
 
 <section id="cash" class="page">
- <div class="card formCard noPrint">
-  <h3>Cash Book — নতুন হিসাব</h3>
-  <form id="cashForm"><div class="grid">
-   <div><label>তারিখ</label><input name="date" type="date" required></div>
-   <div><label>Account Name / বিবরণ</label><input name="name" required placeholder="Cash In / Customer"></div>
-   <div><label>Account No. / Reference</label><input name="ref" placeholder="ঐচ্ছিক"></div>
-   <div><label>ধরন</label><select name="type"><option value="in">Cash In</option><option value="out">Cash Out</option></select></div>
-   <div><label>পরিমাণ (৳)</label><input name="amount" type="number" min="0.01" step="0.01" required></div>
-   <div><label>নোট</label><input name="note"></div>
-  </div><div class="actions"><button>হিসাব যোগ করুন</button></div></form>
- </div>
- <div class="card">
-  <h3 class="printTitle">Cash Book</h3><div id="cashMeta" class="printMeta"></div>
-  <div class="grid noPrint">
-   <div><label>শুরু তারিখ</label><input id="cashFrom" type="date"></div>
-   <div><label>শেষ তারিখ</label><input id="cashTo" type="date"></div>
-   <div><label>নাম দিয়ে খুঁজুন</label><input id="cashSearch" placeholder="Account name"></div>
-  </div>
-  <div class="actions noPrint"><button onclick="renderCash()">Apply</button><button class="green" onclick="printReport('cash')">Print Cash Book</button></div>
-  <div id="cashTable"></div>
- </div>
+<div class="card no-print">
+<h3>Cash Book — নতুন হিসাব</h3>
+<form id="cashForm">
+<div class="grid">
+<div><label>Date</label><input name="date" type="date" required></div>
+<div><label>Type</label><select name="type"><option value="in">Cash In</option><option value="out">Cash Out</option></select></div>
+<div><label>Account Name / Details</label><input name="name" required></div>
+<div><label>Reference</label><input name="ref"></div>
+<div><label>Amount (৳)</label><input name="amount" type="number" min=".01" step=".01" required></div>
+<div><label>Note</label><input name="note"></div>
+</div>
+<div class="actions"><button>Save Cash Transaction</button></div>
+</form>
+</div>
+<div class="card">
+<div class="printhead"><h2>LC Management</h2><h3>Cash Book Report</h3><div id="cashPrintMeta"></div></div>
+<h3>Cash Book Report</h3>
+<div class="grid no-print">
+<div><label>From Date</label><input id="cashFrom" type="date"></div>
+<div><label>To Date</label><input id="cashTo" type="date"></div>
+<div><label>Search Name</label><input id="cashSearch"></div>
+</div>
+<div class="actions no-print">
+<button onclick="renderCash()">Apply</button>
+<button class="green" onclick="printReport('cash')">Print / Save PDF</button>
+</div>
+<div id="cashSummary"></div>
+<div class="tablewrap"><table><thead><tr>
+<th>Date</th><th>Account Name / Details</th><th>Reference</th>
+<th>Cash In</th><th>Cash Out</th><th>Running Balance</th>
+</tr></thead><tbody id="cashRows"></tbody></table></div>
+</div>
 </section>
 
 <section id="bank" class="page">
- <div class="card formCard noPrint">
-  <h3>Bank Statement — নতুন লেনদেন</h3>
-  <form id="bankForm"><div class="grid">
-   <div><label>তারিখ</label><input name="date" type="date" required></div>
-   <div><label>Bank Account</label><select name="accountId" id="bankEntryAccount" required></select></div>
-   <div><label>বিবরণ / Account Name</label><input name="name" required></div>
-   <div><label>Cheque / Reference No.</label><input name="ref"></div>
-   <div><label>ধরন</label><select name="type"><option value="in">Deposit / Bank In</option><option value="out">Withdrawal / Bank Out</option></select></div>
-   <div><label>পরিমাণ (৳)</label><input name="amount" type="number" min="0.01" step="0.01" required></div>
-   <div><label>নোট</label><input name="note"></div>
-  </div><div class="actions"><button>Bank Transaction যোগ করুন</button></div></form>
- </div>
- <div class="card">
-  <h3 class="printTitle" id="bankTitle">Bank Statement</h3><div id="bankMeta" class="printMeta"></div>
-  <div class="grid noPrint">
-   <div><label>ব্যাংক নির্বাচন করুন</label><select id="bankFilter" onchange="renderBank()"></select></div>
-   <div><label>শুরু তারিখ</label><input id="bankFrom" type="date"></div>
-   <div><label>শেষ তারিখ</label><input id="bankTo" type="date"></div>
-   <div><label>নাম দিয়ে খুঁজুন</label><input id="bankSearch"></div>
-  </div>
-  <div class="actions noPrint"><button onclick="renderBank()">Apply</button><button class="green" onclick="printReport('bank')">Print Bank Statement</button></div>
-  <div id="bankTable"></div>
- </div>
-</section>
-
-<section id="stock" class="page">
- <div class="card formCard noPrint"><h3>Stock — পণ্য যোগ করুন</h3>
-  <form id="stockForm"><div class="grid">
-   <div><label>তারিখ</label><input name="date" type="date" required></div>
-   <div><label>Item Name</label><input name="name" required></div>
-   <div><label>Item Code</label><input name="code"></div>
-   <div><label>ধরন</label><select name="type"><option value="in">Stock In</option><option value="out">Stock Out</option></select></div>
-   <div><label>Quantity</label><input name="qty" type="number" min="0.001" step="0.001" required></div>
-   <div><label>Unit Price (৳)</label><input name="price" type="number" min="0" step="0.01" value="0"></div>
-   <div><label>নোট</label><input name="note"></div>
-  </div><div class="actions"><button>Stock যোগ করুন</button></div></form>
- </div>
- <div class="card"><h3 class="printTitle">Stock Report</h3><div id="stockMeta" class="printMeta"></div>
-  <div class="grid noPrint"><div><label>শুরু তারিখ</label><input id="stockFrom" type="date"></div><div><label>শেষ তারিখ</label><input id="stockTo" type="date"></div><div><label>Item Name</label><input id="stockSearch"></div></div>
-  <div class="actions noPrint"><button onclick="renderStock()">Apply</button><button class="green" onclick="printReport('stock')">Print Stock</button></div><div id="stockTable"></div>
- </div>
-</section>
-
-<section id="expenses" class="page">
- <div class="card formCard noPrint"><h3>Expenses — নতুন খরচ</h3>
-  <form id="expenseForm"><div class="grid">
-   <div><label>তারিখ</label><input name="date" type="date" required></div>
-   <div><label>Expense Head</label><input name="name" required placeholder="Rent / Transport"></div>
-   <div><label>Voucher / Reference No.</label><input name="ref"></div>
-   <div><label>পরিমাণ (৳)</label><input name="amount" type="number" min="0.01" step="0.01" required></div>
-   <div><label>Payment Method</label><select name="method"><option>Cash</option><option>Bank</option><option>Other</option></select></div>
-   <div><label>নোট</label><input name="note"></div>
-  </div><div class="actions"><button>Expense যোগ করুন</button></div></form>
- </div>
- <div class="card"><h3 class="printTitle">Expenses Report</h3><div id="expenseMeta" class="printMeta"></div>
-  <div class="grid noPrint"><div><label>শুরু তারিখ</label><input id="expenseFrom" type="date"></div><div><label>শেষ তারিখ</label><input id="expenseTo" type="date"></div><div><label>Expense Head</label><input id="expenseSearch"></div></div>
-  <div class="actions noPrint"><button onclick="renderExpenses()">Apply</button><button class="green" onclick="printReport('expenses')">Print Expenses</button></div><div id="expenseTable"></div>
- </div>
+<div class="card no-print">
+<h3>Bank Transaction Entry</h3>
+<form id="bankForm">
+<div class="grid">
+<div><label>Bank Name</label><input name="bank_name" required placeholder="Pubali Bank"></div>
+<div><label>Account Name</label><input name="account_name" required placeholder="M/S Hili Impex"></div>
+<div><label>Account Number</label><input name="account_number" required></div>
+<div><label>Routing Number</label><input name="routing" placeholder="Routing number"></div>
+<div><label>Branch</label><input name="branch"></div>
+<div><label>Date</label><input name="date" type="date" required></div>
+<div><label>Details / Transaction Name</label><input name="note" required></div>
+<div><label>Cheque / Reference</label><input name="ref"></div>
+<div><label>Type</label><select name="type"><option value="in">Deposit / Credit</option><option value="out">Withdrawal / Debit</option></select></div>
+<div><label>Amount (৳)</label><input name="amount" type="number" min=".01" step=".01" required></div>
+</div>
+<div class="actions"><button>Save Bank Transaction</button></div>
+</form>
+</div>
+<div class="card">
+<div class="printhead"><h2 id="bankPrintCompany">LC Management</h2><h3>Bank Statement</h3><div id="bankPrintMeta"></div></div>
+<h3>Bank Statement Report</h3>
+<div class="grid no-print">
+<div><label>Select Bank Account</label><select id="bankFilter"><option value="all">All Accounts</option></select></div>
+<div><label>From Date</label><input id="bankFrom" type="date"></div>
+<div><label>To Date</label><input id="bankTo" type="date"></div>
+<div><label>Search Description / Account</label><input id="bankSearch"></div>
+</div>
+<div class="actions no-print">
+<button onclick="renderBank()">Apply</button>
+<button class="green" onclick="printReport('bank')">Print / Save PDF</button>
+</div>
+<div id="bankSummary"></div>
+<div class="tablewrap"><table><thead><tr>
+<th>Date</th><th>Account / Bank</th><th>Routing No.</th><th>Account Number</th>
+<th>Details</th><th>Reference</th><th>Debit</th><th>Credit</th><th>Balance</th>
+</tr></thead><tbody id="bankRows"></tbody></table></div>
+</div>
 </section>
 
 <section id="accounts" class="page">
- <div class="card formCard noPrint"><h3>নতুন Bank Account যোগ করুন</h3>
-  <form id="accountForm"><div class="grid">
-   <div><label>Bank Name</label><input name="bank" required placeholder="Pubali Bank"></div>
-   <div><label>Account Name</label><input name="holder" required placeholder="Hili Impex"></div>
-   <div><label>Account Number</label><input name="number" required></div>
-   <div><label>Branch</label><input name="branch"></div>
-   <div><label>Routing Number</label><input name="routing"></div>
-   <div><label>Opening Balance (৳)</label><input name="opening" type="number" step="0.01" value="0" required></div>
-   <div><label>Opening Date</label><input name="date" type="date" required></div>
-  </div><div class="actions"><button>Bank Account Save</button></div></form>
- </div>
- <div class="card"><h3 class="printTitle">Bank Account List</h3><div id="accountsMeta" class="printMeta"></div>
-  <div class="actions noPrint"><button class="green" onclick="printReport('accounts')">Print Bank Accounts</button></div><div id="accountsTable"></div>
- </div>
+<div class="card no-print">
+<h3>Bank Account Opening Balance</h3>
+<form id="accountForm">
+<div class="grid">
+<div><label>Bank Name</label><input name="bank_name" required></div>
+<div><label>Account Name</label><input name="account_name" required></div>
+<div><label>Account Number</label><input name="account_number" required></div>
+<div><label>Routing Number</label><input name="routing"></div>
+<div><label>Branch</label><input name="branch"></div>
+<div><label>Opening Date</label><input name="date" type="date" required></div>
+<div><label>Opening Balance (৳)</label><input name="opening" type="number" step=".01" required value="0"></div>
+</div>
+<div class="actions"><button>Save Bank Account</button></div>
+</form>
+</div>
+<div class="card">
+<div class="printhead"><h2>LC Management</h2><h3>Bank Account List</h3></div>
+<h3>Bank Account List</h3>
+<div class="actions no-print"><button class="green" onclick="printReport('accounts')">Print / Save PDF</button></div>
+<div class="tablewrap"><table><thead><tr><th>Bank</th><th>Account Name</th><th>Account Number</th><th>Routing</th><th>Branch</th><th>Opening Date</th><th>Opening Balance</th><th>Current Balance</th></tr></thead><tbody id="accountRows"></tbody></table></div>
+</div>
+</section>
+
+<section id="expenses" class="page">
+<div class="card no-print">
+<h3>New Expense</h3>
+<form id="expenseForm">
+<div class="grid">
+<div><label>Date</label><input name="date" type="date" required></div>
+<div><label>Expense Head</label><input name="category" required></div>
+<div><label>Description</label><input name="note" required></div>
+<div><label>Payment Method</label><select name="method"><option>Cash</option><option>Bank</option><option>Other</option></select></div>
+<div><label>Amount (৳)</label><input name="amount" type="number" min=".01" step=".01" required></div>
+</div><div class="actions"><button>Save Expense</button></div>
+</form>
+</div>
+<div class="card">
+<div class="printhead"><h2>LC Management</h2><h3>Expenses Report</h3><div id="expensePrintMeta"></div></div>
+<h3>Expenses Report</h3>
+<div class="grid no-print"><div><label>From Date</label><input id="expenseFrom" type="date"></div><div><label>To Date</label><input id="expenseTo" type="date"></div><div><label>Search</label><input id="expenseSearch"></div></div>
+<div class="actions no-print"><button onclick="renderExpenses()">Apply</button><button class="green" onclick="printReport('expenses')">Print / Save PDF</button></div>
+<div id="expenseSummary"></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Expense Head</th><th>Description</th><th>Method</th><th>Amount</th></tr></thead><tbody id="expenseRows"></tbody></table></div>
+</div>
+</section>
+
+<section id="stock" class="page">
+<div class="card no-print">
+<h3>Warehouse Stock Entry</h3>
+<form id="stockForm"><div class="grid">
+<div><label>Date</label><input name="date" type="date" required></div>
+<div><label>Product Name</label><input name="name" required></div>
+<div><label>Item Code</label><input name="code"></div>
+<div><label>Type</label><select name="type"><option value="in">Stock In</option><option value="out">Stock Out</option></select></div>
+<div><label>Quantity</label><input name="qty" type="number" min=".001" step=".001" required></div>
+<div><label>Unit</label><input name="unit" required placeholder="pcs/kg/carton"></div>
+<div><label>Unit Cost (৳)</label><input name="cost" type="number" min="0" step=".01" value="0"></div>
+<div><label>Note</label><input name="note"></div>
+</div><div class="actions"><button>Save Stock</button></div></form>
+</div>
+<div class="card">
+<div class="printhead"><h2>LC Management</h2><h3>Warehouse Stock Report</h3></div>
+<h3>Warehouse Stock Report</h3>
+<div class="grid no-print"><div><label>Search Product</label><input id="stockSearch"></div></div>
+<div class="actions no-print"><button onclick="renderStock()">Apply</button><button class="green" onclick="printReport('stock')">Print / Save PDF</button></div>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Product</th><th>Code</th><th>Type</th><th>Quantity</th><th>Unit</th><th>Unit Cost</th><th>Total Value</th></tr></thead><tbody id="stockRows"></tbody></table></div>
+</div>
+</section>
+
+<section id="lc" class="page">
+<div class="card no-print"><h3>LC Entry</h3>
+<form id="lcForm"><div class="grid">
+<div><label>LC Number</label><input name="lc_no" required></div>
+<div><label>Supplier</label><input name="supplier" required></div>
+<div><label>Bank Name</label><input name="bank_name" required></div>
+<div><label>LC Date</label><input name="date" type="date" required></div>
+<div><label>Amount (৳)</label><input name="amount" type="number" min="0" step=".01" required></div>
+<div><label>Status</label><select name="status"><option>Open</option><option>Documents Received</option><option>Paid</option><option>Closed</option></select></div>
+</div><div class="actions"><button>Save LC Record</button></div></form>
+</div>
+<div class="card"><div class="printhead"><h2>LC Management</h2><h3>LC Records</h3></div>
+<h3>LC Records</h3>
+<div class="actions no-print"><button class="green" onclick="printReport('lc')">Print / Save PDF</button></div>
+<div class="tablewrap"><table><thead><tr><th>LC No.</th><th>Date</th><th>Supplier</th><th>Bank</th><th>Amount</th><th>Status</th></tr></thead><tbody id="lcRows"></tbody></table></div>
+</div>
+</section>
+
+<section id="reports" class="page">
+<div class="card"><div class="printhead"><h2>LC Management</h2><h3>Summary Report</h3></div><h3>Summary Report</h3>
+<div id="reportSummary"></div>
+<div class="actions no-print"><button onclick="exportCSV()">Export CSV</button><button onclick="printReport('reports')">Print / Save PDF</button></div></div>
+</section>
 </section>
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
- // Compatibility fix: connect HTML IDs to JavaScript
-document.querySelectorAll('[id]').forEach(function(el) {
-  if (!(el.id in window)) {
-    window[el.id] = el;
-  }
-});
-const KEY='hili_impex_demo_v2';
-let db={accounts:[],cash:[],bank:[],stock:[],expenses:[]};
-const today=()=>new Date().toISOString().slice(0,10);
+/* Public browser config only. Never paste service_role or secret keys here. */
+const SUPABASE_URL="https://mhxnecgkwqxjalgacxkt.supabase.co";
+const SUPABASE_KEY="sb_publishable_0pfcYZYvQm01CYwF2TlzLw_c2m49p_f";
+
+const $=id=>document.getElementById(id);
 const money=n=>'৳'+Number(n||0).toLocaleString('en-BD',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const dateFmt=s=>s?`${s.slice(8,10)}-${s.slice(5,7)}-${s.slice(0,4)}`:'';
-function save(){localStorage.setItem(KEY,JSON.stringify(db));refresh()}
-function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x)db={...db,...x}}catch(e){}}
-function showPage(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');if(id==='bank')fillBankOptions();window.scrollTo(0,0)}
-function values(form){return Object.fromEntries(new FormData(form).entries())}
-function setupForm(id,kind){document.getElementById(id).addEventListener('submit',e=>{e.preventDefault();let x=values(e.currentTarget);x.id=crypto.randomUUID();if(kind==='accounts'){x.opening=Number(x.opening);db.accounts.push(x)}else if(kind==='cash'||kind==='bank'||kind==='expenses'){x.amount=Number(x.amount);db[kind].push(x)}else if(kind==='stock'){x.qty=Number(x.qty);x.price=Number(x.price||0);db.stock.push(x)}e.currentTarget.reset();setDefaults();save();alert('হিসাব সংরক্ষণ হয়েছে।')})}
-function setDefaults(){document.querySelectorAll('input[type=date][name=date]').forEach(x=>{if(!x.value)x.value=today()})}
-function fillBankOptions(){let s=db.accounts.map(a=>`<option value="${esc(a.id)}">${esc(a.bank)} — ${esc(a.holder)} (${esc(a.number)})</option>`).join('');let entry=document.getElementById('bankEntryAccount'),filter=document.getElementById('bankFilter'),old=filter.value;entry.innerHTML=s||'<option value="">আগে Bank Account যোগ করুন</option>';filter.innerHTML='<option value="all">সব ব্যাংক</option>'+s;if(db.accounts.some(a=>a.id===old))filter.value=old}
-function inRange(x,f,t){return (!f||x>=f)&&(!t||x<=t)}
-function makeTable(headers,rows){if(!rows.length)return '<p>কোনো হিসাব পাওয়া যায়নি।</p>';return '<div class="tablewrap"><table><thead><tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(v=>`<td>${v}</td>`).join('')+'</tr>').join('')+'</tbody></table></div>'}
-function renderCash(){let f=cashFrom.value,t=cashTo.value,q=cashSearch.value.toLowerCase();let a=db.cash.filter(x=>inRange(x.date,f,t)&&`${x.name} ${x.ref} ${x.note}`.toLowerCase().includes(q)).sort((x,y)=>x.date.localeCompare(y.date));let b=0,ins=0,outs=0;let rows=a.map(x=>{if(x.type==='in'){b+=x.amount;ins+=x.amount}else{b-=x.amount;outs+=x.amount}return [dateFmt(x.date),esc(x.name),esc(x.ref||'—'),x.type==='in'?'Cash In':'Cash Out',x.type==='in'?money(x.amount):'—',x.type==='out'?money(x.amount):'—',money(b)]});cashTable.innerHTML=makeTable(['Date','Account Name / Details','Account No. / Ref','Type','Cash In','Cash Out','Balance'],rows);cashMeta.textContent=`Period: ${f?dateFmt(f):'Start'} to ${t?dateFmt(t):'Today'} | Total In: ${money(ins)} | Total Out: ${money(outs)} | Net: ${money(ins-outs)}`}
-function bankBalance(id){let a=db.accounts.find(x=>x.id===id);return (a?.opening||0)+db.bank.filter(x=>x.accountId===id).reduce((s,x)=>s+(x.type==='in'?x.amount:-x.amount),0)}
-function renderBank(){fillBankOptions();let f=bankFrom.value,t=bankTo.value,q=bankSearch.value.toLowerCase(),id=bankFilter.value;let a=db.bank.filter(x=>inRange(x.date,f,t)&&(id==='all'||x.accountId===id)&&`${x.name} ${x.ref} ${x.note}`.toLowerCase().includes(q)).sort((x,y)=>x.date.localeCompare(y.date));let ins=0,outs=0;let rows=a.map(x=>{let ac=db.accounts.find(z=>z.id===x.accountId);if(x.type==='in')ins+=x.amount;else outs+=x.amount;return [dateFmt(x.date),esc(ac?.bank||''),esc(ac?.holder||''),esc(ac?.number||''),esc(x.name),esc(x.ref||'—'),x.type==='in'?'Deposit':'Withdrawal',x.type==='in'?money(x.amount):'—',x.type==='out'?money(x.amount):'—']});let chosen=db.accounts.find(x=>x.id===id);bankTitle.textContent=id==='all'?'Bank Statement — All Accounts':`Bank Statement — ${chosen?.bank||''}`;bankMeta.textContent=`Period: ${f?dateFmt(f):'Start'} to ${t?dateFmt(t):'Today'} | Deposit: ${money(ins)} | Withdrawal: ${money(outs)} | Net movement: ${money(ins-outs)}`;bankTable.innerHTML=makeTable(['Date','Bank','Account Name','Account Number','Details','Reference','Type','Deposit','Withdrawal'],rows)}
-function renderStock(){let f=stockFrom.value,t=stockTo.value,q=stockSearch.value.toLowerCase();let a=db.stock.filter(x=>inRange(x.date,f,t)&&`${x.name} ${x.code} ${x.note}`.toLowerCase().includes(q)).sort((x,y)=>x.date.localeCompare(y.date));stockTable.innerHTML=makeTable(['Date','Item Name','Item Code','Type','Quantity','Unit Price','Total Value','Note'],a.map(x=>[dateFmt(x.date),esc(x.name),esc(x.code||'—'),x.type==='in'?'Stock In':'Stock Out',x.qty,money(x.price),money(x.qty*x.price),esc(x.note||'—')]));stockMeta.textContent=`Period: ${f?dateFmt(f):'Start'} to ${t?dateFmt(t):'Today'} | Transactions: ${a.length}`}
-function renderExpenses(){let f=expenseFrom.value,t=expenseTo.value,q=expenseSearch.value.toLowerCase();let a=db.expenses.filter(x=>inRange(x.date,f,t)&&`${x.name} ${x.ref} ${x.note} ${x.method}`.toLowerCase().includes(q)).sort((x,y)=>x.date.localeCompare(y.date));let total=a.reduce((s,x)=>s+x.amount,0);expensesTable.innerHTML=makeTable(['Date','Expense Head','Voucher / Ref','Payment Method','Amount','Note'],a.map(x=>[dateFmt(x.date),esc(x.name),esc(x.ref||'—'),esc(x.method),money(x.amount),esc(x.note||'—')]));expenseMeta.textContent=`Period: ${f?dateFmt(f):'Start'} to ${t?dateFmt(t):'Today'} | Total Expenses: ${money(total)}`}
-function renderAccounts(){accountsTable.innerHTML=makeTable(['Bank Name','Account Name','Account Number','Branch','Routing No.','Opening Date','Opening Balance','Current Balance'],db.accounts.map(a=>[esc(a.bank),esc(a.holder),esc(a.number),esc(a.branch||'—'),esc(a.routing||'—'),dateFmt(a.date),money(a.opening),money(bankBalance(a.id))]));accountsMeta.textContent=`Total bank accounts: ${db.accounts.length}`}
-function refresh(){fillBankOptions();renderCash();renderBank();renderStock();renderExpenses();renderAccounts();dashCash.textContent=money(db.cash.reduce((s,x)=>s+(x.type==='in'?x.amount:-x.amount),0));dashBank.textContent=money(db.accounts.reduce((s,a)=>s+bankBalance(a.id),0));dashStock.textContent=db.stock.reduce((s,x)=>s+(x.type==='in'?x.qty:-x.qty),0).toLocaleString();dashExpenses.textContent=money(db.expenses.reduce((s,x)=>s+x.amount,0));let recent=[...db.cash].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);document.getElementById('recent').innerHTML=makeTable(['Date','Account Name','Type','Amount'],recent.map(x=>[dateFmt(x.date),esc(x.name),x.type==='in'?'Cash In':'Cash Out',money(x.amount)]))}
-function printReport(id){refresh();document.body.dataset.print=id;window.print()}
-window.addEventListener('afterprint',()=>{delete document.body.dataset.print});
-function backup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='hili-impex-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href)}
-function restore(e){let file=e.target.files[0];if(!file)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.accounts||!x.cash||!x.bank||!x.stock||!x.expenses)throw Error();if(confirm('বর্তমান ডেটার বদলে এই backup বসাবেন?')){db=x;save();alert('Backup Restore হয়েছে')}}catch(err){alert('সঠিক backup JSON ফাইল নির্বাচন করুন।')}e.target.value=''};r.readAsText(file)}
-setupForm('cashForm','cash');setupForm('bankForm','bank');setupForm('stockForm','stock');setupForm('expenseForm','expenses');setupForm('accountForm','accounts');
-['cashSearch','bankSearch','stockSearch','expenseSearch'].forEach(id=>document.getElementById(id).addEventListener('input',()=>({cashSearch:renderCash,bankSearch:renderBank,stockSearch:renderStock,expenseSearch:renderExpenses})[id]()));
-load();setDefaults();refresh();
+const today=()=>new Date().toISOString().slice(0,10);
+let sb=null,user=null,profile=null,workspaceId=null,personalMode=true;
+const data={cash:[],bank:[],accounts:[],expenses:[],stock:[],lc:[]};
+const tableMap={cash:'cash_transactions',bank:'bank_transactions',accounts:'bank_accounts',expenses:'expenses',stock:'stock_items',lc:'lc_records'};
+
+function showPage(id,btn){
+ document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));
+ document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+ if(btn)btn.classList.add('active');
+}
+function message(id,text){$(id).textContent=text}
+function printReport(id){
+ document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));
+ if(id==='bank')renderBank();
+ if(id==='cash')renderCash();
+ if(id==='expenses')renderExpenses();
+ if(id==='stock')renderStock();
+ document.body.dataset.print=id;
+ setTimeout(()=>window.print(),250);
+}
+window.addEventListener('afterprint',()=>delete document.body.dataset.print);
+function filterQuery(query){
+ return personalMode?query.eq('owner_id',user.id):query.eq('workspace_id',workspaceId);
+}
+async function readTable(key){
+ let q=sb.from(tableMap[key]).select('*');
+ q=filterQuery(q);
+ const {data:rows,error}=await q.order('created_at',{ascending:true});
+ if(error)throw error;
+ return rows||[];
+}
+async function reload(){
+ for(const k of Object.keys(tableMap))data[k]=await readTable(k);
+ renderAll();
+}
+async function saveRow(key,row){
+ row.owner_id=user.id;
+ row.workspace_id=personalMode?null:workspaceId;
+ const {error}=await sb.from(tableMap[key]).insert(row);
+ if(error)throw error;
+ await reload();
+}
+function bindForm(id,key,fields){
+ $(id).addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(!user)return;
+  const f=new FormData(e.currentTarget),row={};
+  fields.forEach(k=>row[k]=f.get(k));
+  ['amount','opening','qty','cost'].forEach(k=>{
+   if(row[k]!==undefined)row[k]=Number(row[k]||0);
+  });
+  try{
+   await saveRow(key,row);
+   e.currentTarget.reset();
+   e.currentTarget.querySelectorAll('input[type=date]').forEach(x=>x.value=today());
+   message('appMsg','তথ্য Supabase-এ সংরক্ষণ হয়েছে।');
+  }catch(err){message('appMsg','Save error: '+err.message)}
+ });
+}
+function rowsHTML(items,fn){
+ return items.map(x=>'<tr>'+fn(x).map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="10">কোনো তথ্য নেই</td></tr>';
+}
+function inDates(x,from,to){return (!from||x>=from)&&(!to||x<=to)}
+function renderCash(){
+ const f=$('cashFrom').value,t=$('cashTo').value,q=$('cashSearch').value.toLowerCase();
+ const items=data.cash.filter(x=>inDates(x.date,f,t)&&`${x.name||''} ${x.ref||''} ${x.note||''}`.toLowerCase().includes(q)).sort((a,b)=>a.date.localeCompare(b.date));
+ let balance=0,ins=0,outs=0;
+ $('cashRows').innerHTML=rowsHTML(items,x=>{
+  const amount=Number(x.amount||0);
+  if(x.type==='in'){balance+=amount;ins+=amount}else{balance-=amount;outs+=amount}
+  return [esc(x.date),esc(x.name||x.note||''),esc(x.ref||''),x.type==='in'?money(amount):'—',x.type==='out'?money(amount):'—',money(balance)];
+ });
+ $('cashSummary').textContent=`Total In: ${money(ins)} | Total Out: ${money(outs)} | Net: ${money(ins-outs)}`;
+ $('cashPrintMeta').textContent=`Period: ${f||'Start'} to ${t||'Today'} | In: ${money(ins)} | Out: ${money(outs)}`;
+}
+function renderBank(){
+ const f=$('bankFrom').value,t=$('bankTo').value,q=$('bankSearch').value.toLowerCase(),filter=$('bankFilter').value;
+ let items=data.bank.filter(x=>inDates(x.date,f,t)&&(filter==='all'||x.account_id===filter)&&`${x.bank_name||''} ${x.account_name||''} ${x.account_number||''} ${x.note||''} ${x.ref||''}`.toLowerCase().includes(q)).sort((a,b)=>a.date.localeCompare(b.date));
+ let balance=0,ins=0,outs=0;
+ const acct=data.accounts.find(a=>a.id===filter);
+ if(filter!=='all'&&acct)balance=Number(acct.opening||0);
+ $('bankRows').innerHTML=rowsHTML(items,x=>{
+  const amount=Number(x.amount||0);
+  if(x.type==='in'){balance+=amount;ins+=amount}else{balance-=amount;outs+=amount}
+  return [esc(x.date),esc(x.bank_name||''),esc(x.routing||''),esc(x.account_number||''),esc(x.note||''),esc(x.ref||'—'),x.type==='out'?money(amount):'—',x.type==='in'?money(amount):'—',money(balance)];
+ });
+ const opts=['<option value="all">All Accounts</option>',...data.accounts.map(a=>`<option value="${esc(a.id)}">${esc(a.bank_name)} — ${esc(a.account_name)} (${esc(a.account_number)})</option>`)];
+ const old=$('bankFilter').value;
+ $('bankFilter').innerHTML=opts.join('');
+ if(old==='all'||data.accounts.some(a=>a.id===old))$('bankFilter').value=old;
+ $('bankSummary').textContent=`Opening: ${money(acct?.opening||0)} | Credit: ${money(ins)} | Debit: ${money(outs)} | Net Movement: ${money(ins-outs)}`;
+ $('bankPrintMeta').textContent=`Account: ${acct?acct.bank_name+' / '+acct.account_name:'All Accounts'} | Period: ${f||'Start'} to ${t||'Today'} | Credit: ${money(ins)} | Debit: ${money(outs)} | Net: ${money(ins-outs)}`;
+}
+function renderAccounts(){
+ $('accountRows').innerHTML=rowsHTML(data.accounts,a=>{
+  const tx=data.bank.filter(x=>x.account_number===a.account_number&&x.bank_name===a.bank_name);
+  const balance=Number(a.opening||0)+tx.reduce((s,x)=>s+(x.type==='in'?Number(x.amount):-Number(x.amount)),0);
+  return [esc(a.bank_name),esc(a.account_name),esc(a.account_number),esc(a.routing||''),esc(a.branch||''),esc(a.date),money(a.opening),money(balance)];
+ });
+}
+function renderExpenses(){
+ const f=$('expenseFrom').value,t=$('expenseTo').value,q=$('expenseSearch').value.toLowerCase();
+ const items=data.expenses.filter(x=>inDates(x.date,f,t)&&`${x.category||''} ${x.note||''}`.toLowerCase().includes(q)).sort((a,b)=>a.date.localeCompare(b.date));
+ const total=items.reduce((s,x)=>s+Number(x.amount||0),0);
+ $('expenseRows').innerHTML=rowsHTML(items,x=>[esc(x.date),esc(x.category),esc(x.note),esc(x.method||''),money(x.amount)]);
+ $('expenseSummary').textContent=`Total Expenses: ${money(total)}`;
+ $('expensePrintMeta').textContent=`Period: ${f||'Start'} to ${t||'Today'} | Total: ${money(total)}`;
+}
+function renderStock(){
+ const q=$('stockSearch').value.toLowerCase();
+ const items=data.stock.filter(x=>`${x.name||''} ${x.code||''}`.toLowerCase().includes(q)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+ $('stockRows').innerHTML=rowsHTML(items,x=>[esc(x.date||''),esc(x.name),esc(x.code||''),x.type==='out'?'Stock Out':'Stock In',esc(x.qty),esc(x.unit||''),money(x.cost),money(Number(x.qty||0)*Number(x.cost||0))]);
+}
+function renderLC(){
+ $('lcRows').innerHTML=rowsHTML(data.lc,x=>[esc(x.lc_no),esc(x.date),esc(x.supplier),esc(x.bank_name),money(x.amount),esc(x.status)]);
+}
+function renderAll(){
+ renderCash();renderBank();renderAccounts();renderExpenses();renderStock();renderLC();
+ $('dashCash').textContent=money(data.cash.reduce((s,x)=>s+(x.type==='in'?Number(x.amount):-Number(x.amount)),0));
+ $('dashBank').textContent=money(data.accounts.reduce((s,a)=>{
+  const tx=data.bank.filter(x=>x.bank_name===a.bank_name&&x.account_number===a.account_number);
+  return s+Number(a.opening||0)+tx.reduce((z,x)=>z+(x.type==='in'?Number(x.amount):-Number(x.amount)),0);
+ },0));
+ $('dashStock').textContent=data.stock.length;
+ $('dashExpense').textContent=money(data.expenses.reduce((s,x)=>s+Number(x.amount||0),0));
+ $('reportSummary').innerHTML=`<p>Cash Balance: <b>${money(Number($('dashCash').textContent.replace(/[৳,]/g,'')))}</b></p><p>Bank Balance: <b>${$('dashBank').textContent}</b></p><p>Total Expenses: <b>${$('dashExpense').textContent}</b></p><p>Stock records: <b>${data.stock.length}</b></p><p>LC records: <b>${data.lc.length}</b></p>`;
+}
+function exportCSV(){
+ const rows=[['Section','Date','Name/Details','Amount']];
+ data.cash.forEach(x=>rows.push(['Cash',x.date,x.name||x.note,x.amount]));
+ data.bank.forEach(x=>rows.push(['Bank',x.date,`${x.bank_name} ${x.account_name} ${x.note}`,x.amount]));
+ data.expenses.forEach(x=>rows.push(['Expense',x.date,`${x.category} ${x.note}`,x.amount]));
+ const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='lc-management-report.csv';a.click();URL.revokeObjectURL(a.href);
+}
+function showAuth(){ $('auth').classList.remove('hidden');$('setup').classList.add('hidden');$('app').classList.add('hidden'); }
+async function afterLogin(){
+ try{
+  $('auth').classList.add('hidden');
+  const {data:p,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+  if(error)throw error;
+  if(!p){$('setup').classList.remove('hidden');$('app').classList.add('hidden');return}
+  profile=p;personalMode=p.account_type==='personal';workspaceId=p.workspace_id;
+  $('setup').classList.add('hidden');$('app').classList.remove('hidden');
+  $('userEmail').textContent=user.email;
+  $('workspaceLabel').textContent=personalMode?'Personal Account':`Company Account — ${p.role||'member'}`;
+  await reload();
+  message('appMsg','Supabase-এ সংযুক্ত। RLS policy সঠিকভাবে চালু থাকা আবশ্যক।');
+ }catch(e){message('authMsg','Login/Setup error: '+e.message);showAuth()}
+}
+async function boot(){
+ if(!window.supabase){message('authMsg','Supabase library load হয়নি। Internet connection পরীক্ষা করুন।');return}
+ sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+ const {data:{session}}=await sb.auth.getSession();
+ if(session){user=session.user;await afterLogin()}
+ sb.auth.onAuthStateChange((_event,session)=>{
+  user=session?.user||null;
+  if(!user)showAuth();
+ });
+}
+$('authForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const f=new FormData(e.currentTarget);
+ const {data,error}=await sb.auth.signInWithPassword({email:f.get('email'),password:f.get('password')});
+ message('authMsg',error?error.message:'Login request সফল হয়েছে।');
+ if(!error){user=data.user;await afterLogin()}
+});
+$('signupBtn').onclick=async()=>{
+ const f=new FormData($('authForm'));
+ if(!f.get('email')||!f.get('password'))return message('authMsg','Email ও Password দিন।');
+ const {data,error}=await sb.auth.signUp({email:f.get('email'),password:f.get('password')});
+ message('authMsg',error?error.message:(data.session?'Signup হয়েছে।':'Signup হয়েছে। ইমেইল confirmation প্রয়োজন হতে পারে।'));
+ if(data?.user&&data.session){user=data.user;await afterLogin()}
+};
+$('resetBtn').onclick=async()=>{
+ const email=$('authForm').elements.email.value;
+ if(!email)return message('authMsg','আগে Email লিখুন।');
+ const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href});
+ message('authMsg',error?error.message:'Password reset email পাঠানো হয়েছে।');
+};
+$('accountType').onchange=()=> $('companyWrap').classList.toggle('hidden',$('accountType').value!=='company');
+$('setupBtn').onclick=async()=>{
+ try{
+  const type=$('accountType').value,name=$('companyName').value.trim();
+  if(type==='company'&&!name)throw Error('Company name লিখুন।');
+  message('setupMsg','Setup চলছে...');
+  const {data,error}=await sb.rpc('create_initial_profile',{p_account_type:type,p_company_name:name||null});
+  if(error)throw error;
+  await afterLogin();
+ }catch(e){message('setupMsg','Setup failed: '+e.message+' — SQL setup সম্পন্ন হয়েছে কি না পরীক্ষা করুন।')}
+};
+$('logoutBtn').onclick=$('setupLogout').onclick=async()=>{await sb.auth.signOut();user=null;profile=null;showAuth()};
+bindForm('cashForm','cash',['date','type','name','ref','note','amount']);
+bindForm('bankForm','bank',['bank_name','account_name','account_number','routing','branch','date','type','note','ref','amount']);
+bindForm('accountForm','accounts',['bank_name','account_name','account_number','routing','branch','date','opening']);
+bindForm('expenseForm','expenses',['date','category','note','method','amount']);
+bindForm('stockForm','stock',['date','name','code','type','qty','unit','cost','note']);
+bindForm('lcForm','lc',['lc_no','supplier','bank_name','date','amount','status']);
+['cashFrom','cashTo','cashSearch'].forEach(id=>$(id).addEventListener('input',renderCash));
+['bankFrom','bankTo','bankSearch','bankFilter'].forEach(id=>$(id).addEventListener('input',renderBank));
+['expenseFrom','expenseTo','expenseSearch'].forEach(id=>$(id).addEventListener('input',renderExpenses));
+$('stockSearch').addEventListener('input',renderStock);
+document.querySelectorAll('input[type=date][name=date]').forEach(x=>x.value=today());
+boot();
 </script>
 </body>
 </html>
